@@ -1,0 +1,24 @@
+{
+  "name": "augurrank-server-worker",
+  "version": "0.0.0",
+  "private": true,
+  "engines": {
+    "node": "20.x.x"
+  },
+  "type": "module",
+  "scripts": {
+    "start": "node --import=specifier-resolution-node/register src/index.js",
+    "to-confirmed": "node --import=specifier-resolution-node/register src/to-confirmed.js",
+    "to-verifying": "node --import=specifier-resolution-node/register src/to-verifying.js",
+    "to-verified": "node --import=specifier-resolution-node/register src/to-verified.js",
+    "to-confirmed-local": "GOOGLE_APPLICATION_CREDENTIALS=~/.config/gcloud/legacy_credentials/brace@brace.to/augurrank-001-bde1aaaabf2f.json node --import=specifier-resolution-node/register src/to-confirmed.js",
+    "to-verifying-local": "GOOGLE_APPLICATION_CREDENTIALS=~/.config/gcloud/legacy_credentials/brace@brace.to/augurrank-001-bde1aaaabf2f.json node --import=specifier-resolution-node/register src/to-verifying.js",
+    "to-verified-local": "GOOGLE_APPLICATION_CREDENTIALS=~/.config/gcloud/legacy_credentials/brace@brace.to/augurrank-001-bde1aaaabf2f.json node --import=specifier-resolution-node/register src/to-verified.js",
+    "deploy": "gcloud run jobs deploy augurrank-server-worker --source . --cpu=1 --memory=256Mi --tasks=1 --max-retries=0 --task-timeout=20m --region=us-central1 --project=augurrank-001"
+  },
+  "dependencies": {
+    "@google-cloud/datastore": "^9.2.1",
+    "@stacks/transactions": "^7.0.2",
+    "specifier-resolution-node": "^1.1.4"
+  }
+}
