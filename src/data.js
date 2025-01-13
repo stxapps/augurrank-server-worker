@@ -82,6 +82,7 @@ const getVerifiablePreds = async (burnHeight) => {
     new PropertyFilter('vTxId', '=', null),
     new PropertyFilter('targetBurnHeight', '<', burnHeight),
   ]));
+  query.order('targetBurnHeight', { descending: false }); // inequality must be first
   query.order('createDate', { descending: false }); // for cont-day's anchor in Total
   query.limit(40);
 
