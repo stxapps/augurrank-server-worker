@@ -42,7 +42,7 @@ const fetchHeight = async (burnHeight) => {
 };
 
 const fetchTxInfo = async (txId) => {
-  const res = await fetch(`https://api.hiro.so/extended/v1/tx/{txId}`);
+  const res = await fetch(`https://api.hiro.so/extended/v1/tx/${txId}`);
   if (res.status === 404) {
     throw new Error(NOT_FOUND_ERROR);
   }
