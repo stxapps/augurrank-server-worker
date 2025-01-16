@@ -40,7 +40,8 @@ const _udtTotCfd = async (appBtcAddr, oldPred, newPred) => {
   try {
     await transaction.run();
 
-    const [entities] = await transaction.get(keys);
+    const [_entities] = await transaction.get(keys);
+    const entities = mapEntities(keyNames, _entities);
 
     const newEntities = [], now = Date.now();
     let keyName, key, entity, formula, total, isFirst, contDay;
@@ -215,7 +216,8 @@ const _udtTotVrd = async (appBtcAddr, oldPred, newPred) => {
   try {
     await transaction.run();
 
-    const [entities] = await transaction.get(keys);
+    const [_entities] = await transaction.get(keys);
+    const entities = mapEntities(keyNames, _entities);
 
     const newEntities = [], now = Date.now();
     let keyName, key, entity, formula, total, contDay;
@@ -403,6 +405,21 @@ const entityToTotal = (entity) => {
   if (isNotNullIn(entity, 'anchor')) total.anchor = entity.anchor;
 
   return total;
+};
+
+const mapEntities = (keyNames, _entities) => {
+  const knToEtt = {};
+  for (const ett of _entities) {
+    if (!isObject(ett)) continue;
+    knToEtt[ett[datastore.KEY].name] = ett;
+  }
+
+  const entities = [];
+  for (const keyName of keyNames) {
+    const ett = knToEtt[keyName];
+    entities.push(isObject(ett) ? ett : null);
+  }
+  return entities;
 };
 
 const data = { udtTotCfd, udtTotVrd };

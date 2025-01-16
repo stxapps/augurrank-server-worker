@@ -145,7 +145,7 @@ const updatePred = async (appBtcAddr, pred) => {
     const oldPred = entityToPred(oldEntity);
 
     const newPred = mergePreds(oldPred, pred);
-    const newEntity = predToEntityData(appBtcAddr, newPred);
+    const newEntity = { key: predKey, data: predToEntityData(appBtcAddr, newPred) }
 
     transaction.save(newEntity);
     await transaction.commit();

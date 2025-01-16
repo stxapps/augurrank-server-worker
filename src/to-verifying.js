@@ -21,12 +21,14 @@ const _main = async () => {
     const { contract, stxAddr, seq, targetBurnHeight } = pred;
 
     const targetHeight = await dataApi.fetchHeight(targetBurnHeight);
+    console.log(`(${logKey}) pred: ${pred.id} got targetHeight: ${targetHeight}`);
 
     let functionName = 'verify';
-    let functionArgs = [Cl.principal(stxAddr), Cl.uint(seq), Cl.uint(targetHeight)];
+    let functionArgs = [Cl.principal(stxAddr), Cl.uint(seq)];
     if (targetHeight === -1) {
       functionName = 'not-available';
-      functionArgs = [Cl.principal(stxAddr), Cl.uint(seq)];
+    } else {
+      functionArgs.push(Cl.uint(targetHeight));
     }
 
     const txOptions = {
@@ -38,19 +40,21 @@ const _main = async () => {
       functionArgs,
       postConditionMode: PostConditionMode.Deny,
       postConditions: [],
-      //fee: 100,
+      fee: 4191, //22000 // might diff btw. verify and not-available
+      //nonce: n, // can set at the top and plus one, no need to fetch every time
       validateWithAbi: true,
     };
     /** @ts-expect-error */
     const transaction = await makeContractCall(txOptions);
     const response = await broadcastTransaction({ transaction, network: 'mainnet' });
-    console.log(`(${logKey}) ${pred.id} called the contract`);
-
-    // need to wait to be confirmed? can do next one immediately?
+    console.log(`(${logKey}) called the contract with txid: ${response.txid}`);
 
     const newPred = mergePreds(pred, { vTxId: response.txid, targetHeight });
     await dataApi.updatePred(appBtcAddr, newPred);
-    console.log(`(${logKey}) ${pred.id} saved to Datastore`);
+    console.log(`(${logKey}) saved newPred to Datastore`);
+
+    // need to wait to be confirmed? can do next one immediately?
+    break;
   }
 
   console.log(`(${logKey}) Worker finishes on ${(new Date()).toISOString()}.`);

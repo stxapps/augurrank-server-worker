@@ -5,7 +5,7 @@ import {
   PRED_STATUS_VERIFIED_ERROR, PDG, SCS,
 } from './const';
 
-export const sleep = ms => {
+export const sleep = (ms) => {
   return new Promise(resolve => setTimeout(resolve, ms));
 };
 
@@ -14,7 +14,7 @@ export const isObject = (val) => {
 };
 
 export const isString = (val) => {
-  return typeof val === 'string' || val instanceof String;
+  return typeof val === 'string';
 };
 
 export const isNumber = (val) => {
@@ -128,7 +128,11 @@ export const deriveTxInfo = (txInfo) => {
   if (Array.isArray(txInfo.events)) {
     obj.vls = [];
     for (const evt of txInfo.events) {
-      obj.vls.push(evt.contract_log.value.repr);
+      try {
+        obj.vls.push(evt.contract_log.value.repr);
+      } catch (error) {
+        // might be other event types.
+      }
     }
   }
   return obj;
