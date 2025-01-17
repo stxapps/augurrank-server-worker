@@ -46,7 +46,7 @@ const _udtTotCfd = async (appBtcAddr, oldPred, newPred) => {
     const newEntities = [], now = Date.now();
     let keyName, key, entity, formula, total, isFirst, contDay;
 
-    [keyName, key, entity, formula] = [keyNames[0], keys[0], entities[0], formulas[0]];
+    [keyName, key, entity, formula] = getAt(keyNames, keys, entities, formulas, 0);
     if (isObject(entity)) {
       total = entityToTotal(entity);
       [total.outcome, total.updateDate] = [total.outcome + 1, now];
@@ -56,7 +56,7 @@ const _udtTotCfd = async (appBtcAddr, oldPred, newPred) => {
     }
     newEntities.push({ key, data: totalToEntityData(total) });
 
-    [keyName, key, entity, formula] = [keyNames[1], keys[1], entities[1], formulas[1]];
+    [keyName, key, entity, formula] = getAt(keyNames, keys, entities, formulas, 1);
     if (isObject(entity)) {
       total = entityToTotal(entity);
       if (newPred.createDate - total.anchor <= 24 * 60 * 60 * 1000) {
@@ -74,7 +74,7 @@ const _udtTotCfd = async (appBtcAddr, oldPred, newPred) => {
     newEntities.push({ key, data: totalToEntityData(total) });
     contDay = total.outcome;
 
-    [keyName, key, entity, formula] = [keyNames[2], keys[2], entities[2], formulas[2]];
+    [keyName, key, entity, formula] = getAt(keyNames, keys, entities, formulas, 2);
     if (isObject(entity)) {
       total = entityToTotal(entity);
       if (total.outcome < contDay) {
@@ -86,7 +86,7 @@ const _udtTotCfd = async (appBtcAddr, oldPred, newPred) => {
       newEntities.push({ key, data: totalToEntityData(total) });
     }
 
-    [keyName, key, entity, formula] = [keyNames[3], keys[3], entities[3], formulas[3]];
+    [keyName, key, entity, formula] = getAt(keyNames, keys, entities, formulas, 3);
     if (isObject(entity)) {
       total = entityToTotal(entity);
       [total.outcome, total.updateDate] = [total.outcome + 1, now];
@@ -95,7 +95,7 @@ const _udtTotCfd = async (appBtcAddr, oldPred, newPred) => {
     }
     newEntities.push({ key, data: totalToEntityData(total) });
 
-    [keyName, key, entity, formula] = [keyNames[4], keys[4], entities[4], formulas[4]];
+    [keyName, key, entity, formula] = getAt(keyNames, keys, entities, formulas, 4);
     if (isObject(entity)) {
       total = entityToTotal(entity);
       if (newPred.createDate - total.anchor <= 24 * 60 * 60 * 1000) {
@@ -113,7 +113,7 @@ const _udtTotCfd = async (appBtcAddr, oldPred, newPred) => {
     newEntities.push({ key, data: totalToEntityData(total) });
     contDay = total.outcome;
 
-    [keyName, key, entity, formula] = [keyNames[5], keys[5], entities[5], formulas[5]];
+    [keyName, key, entity, formula] = getAt(keyNames, keys, entities, formulas, 5);
     if (isObject(entity)) {
       total = entityToTotal(entity);
       if (total.outcome < contDay) {
@@ -125,7 +125,7 @@ const _udtTotCfd = async (appBtcAddr, oldPred, newPred) => {
       newEntities.push({ key, data: totalToEntityData(total) });
     }
 
-    [keyName, key, entity, formula] = [keyNames[6], keys[6], entities[6], formulas[6]];
+    [keyName, key, entity, formula] = getAt(keyNames, keys, entities, formulas, 6);
     if (isObject(entity)) {
       total = entityToTotal(entity);
       [total.outcome, total.updateDate] = [total.outcome + 1, now];
@@ -136,7 +136,7 @@ const _udtTotCfd = async (appBtcAddr, oldPred, newPred) => {
 
     // We can know if this is a new user for this game by checking user+game exists.
     if (isFirst) {
-      [keyName, key, entity, formula] = [keyNames[7], keys[7], entities[7], formulas[7]];
+      [keyName, key, entity, formula] = getAt(keyNames, keys, entities, formulas, 7);
       if (isObject(entity)) {
         total = entityToTotal(entity);
         [total.outcome, total.updateDate] = [total.outcome + 1, now];
@@ -180,36 +180,34 @@ const _udtTotVrd = async (appBtcAddr, oldPred, newPred) => {
     `${appBtcAddr}-${game}-${predValue}-confirmed_ok-count`,
     `${appBtcAddr}-${predValue}-confirmed_ok-count`,
     `${game}-${predValue}-confirmed_ok-count`,
+    `${appBtcAddr}-${game}-${predValue}-verified_ok-${predCorrect}-count`,
+    `${appBtcAddr}-${game}-verified_ok-TRUE-count-cont`,
+    `${appBtcAddr}-${game}-verified_ok-FALSE-count-cont`,
+    `${appBtcAddr}-${game}-verified_ok-N/A-count-cont`,
+    `${appBtcAddr}-${game}-verified_ok-${predCorrect}-max-cont`,
+    `${appBtcAddr}-${predValue}-verified_ok-${predCorrect}-count`,
+    `${appBtcAddr}-verified_ok-TRUE-count-cont`,
+    `${appBtcAddr}-verified_ok-FALSE-count-cont`,
+    `${appBtcAddr}-verified_ok-N/A-count-cont`,
+    `${appBtcAddr}-verified_ok-${predCorrect}-max-cont`,
+    `${game}-${predValue}-verified_ok-${predCorrect}-count`
   ];
   const formulas = [
     `${predValue}-confirmed_ok-count`,
     `${predValue}-confirmed_ok-count`,
     `${predValue}-confirmed_ok-count`,
+    `${predValue}-verified_ok-${predCorrect}-count`,
+    `verified_ok-TRUE-count-cont`,
+    `verified_ok-FALSE-count-cont`,
+    `verified_ok-N/A-count-cont`,
+    `verified_ok-${predCorrect}-max-cont`,
+    `${predValue}-verified_ok-${predCorrect}-count`,
+    `verified_ok-TRUE-count-cont`,
+    `verified_ok-FALSE-count-cont`,
+    `verified_ok-N/A-count-cont`,
+    `verified_ok-${predCorrect}-max-cont`,
+    `${predValue}-verified_ok-${predCorrect}-count`
   ];
-  if (['TRUE', 'FALSE'].includes(predCorrect)) {
-    keyNames.push(...[
-      `${appBtcAddr}-${game}-${predValue}-verified_ok-${predCorrect}-count`,
-      `${appBtcAddr}-${game}-verified_ok-TRUE-count-cont`,
-      `${appBtcAddr}-${game}-verified_ok-FALSE-count-cont`,
-      `${appBtcAddr}-${game}-verified_ok-${predCorrect}-max-cont`,
-      `${appBtcAddr}-${predValue}-verified_ok-${predCorrect}-count`,
-      `${appBtcAddr}-verified_ok-TRUE-count-cont`,
-      `${appBtcAddr}-verified_ok-FALSE-count-cont`,
-      `${appBtcAddr}-verified_ok-${predCorrect}-max-cont`,
-      `${game}-${predValue}-verified_ok-${predCorrect}-count`
-    ]);
-    formulas.push(...[
-      `${predValue}-verified_ok-${predCorrect}-count`,
-      `verified_ok-TRUE-count-cont`,
-      `verified_ok-FALSE-count-cont`,
-      `verified_ok-${predCorrect}-max-cont`,
-      `${predValue}-verified_ok-${predCorrect}-count`,
-      `verified_ok-TRUE-count-cont`,
-      `verified_ok-FALSE-count-cont`,
-      `verified_ok-${predCorrect}-max-cont`,
-      `${predValue}-verified_ok-${predCorrect}-count`
-    ]);
-  }
   const keys = keyNames.map(kn => datastore.key([TOTAL, kn]));
 
   const transaction = datastore.transaction();
@@ -222,129 +220,149 @@ const _udtTotVrd = async (appBtcAddr, oldPred, newPred) => {
     const newEntities = [], now = Date.now();
     let keyName, key, entity, formula, total, contDay;
 
-    [keyName, key, entity, formula] = [keyNames[0], keys[0], entities[0], formulas[0]];
+    [keyName, key, entity, formula] = getAt(keyNames, keys, entities, formulas, 0);
     if (isObject(entity)) {
       total = entityToTotal(entity);
       [total.outcome, total.updateDate] = [total.outcome - 1, now];
       newEntities.push({ key, data: totalToEntityData(total) });
     }
 
-    [keyName, key, entity, formula] = [keyNames[1], keys[1], entities[1], formulas[1]];
+    [keyName, key, entity, formula] = getAt(keyNames, keys, entities, formulas, 1);
     if (isObject(entity)) {
       total = entityToTotal(entity);
       [total.outcome, total.updateDate] = [total.outcome - 1, now];
       newEntities.push({ key, data: totalToEntityData(total) });
     }
 
-    [keyName, key, entity, formula] = [keyNames[2], keys[2], entities[2], formulas[2]];
+    [keyName, key, entity, formula] = getAt(keyNames, keys, entities, formulas, 2);
     if (isObject(entity)) {
       total = entityToTotal(entity);
       [total.outcome, total.updateDate] = [total.outcome - 1, now];
       newEntities.push({ key, data: totalToEntityData(total) });
     }
 
-    if (['TRUE', 'FALSE'].includes(predCorrect)) {
-      [keyName, key, entity, formula] = [keyNames[3], keys[3], entities[3], formulas[3]];
-      if (isObject(entity)) {
-        total = entityToTotal(entity);
-        [total.outcome, total.updateDate] = [total.outcome + 1, now];
-      } else {
-        total = newTotal(keyName, appBtcAddr, game, formula, 1, now, now);
-      }
-      newEntities.push({ key, data: totalToEntityData(total) });
+    [keyName, key, entity, formula] = getAt(keyNames, keys, entities, formulas, 3);
+    if (isObject(entity)) {
+      total = entityToTotal(entity);
+      [total.outcome, total.updateDate] = [total.outcome + 1, now];
+    } else {
+      total = newTotal(keyName, appBtcAddr, game, formula, 1, now, now);
+    }
+    newEntities.push({ key, data: totalToEntityData(total) });
 
-      [keyName, key, entity, formula] = [keyNames[4], keys[4], entities[4], formulas[4]];
-      if (isObject(entity)) {
-        total = entityToTotal(entity);
-        total.outcome = predCorrect === 'TRUE' ? total.outcome + 1 : 0;
-        total.updateDate = now;
-      } else {
-        const outcome = predCorrect === 'TRUE' ? 1 : 0;
-        total = newTotal(keyName, appBtcAddr, game, formula, outcome, now, now);
-      }
-      newEntities.push({ key, data: totalToEntityData(total) });
-      if (predCorrect === 'TRUE') contDay = total.outcome;
+    [keyName, key, entity, formula] = getAt(keyNames, keys, entities, formulas, 4);
+    if (isObject(entity)) {
+      total = entityToTotal(entity);
+      total.outcome = predCorrect === 'TRUE' ? total.outcome + 1 : 0;
+      total.updateDate = now;
+    } else {
+      const outcome = predCorrect === 'TRUE' ? 1 : 0;
+      total = newTotal(keyName, appBtcAddr, game, formula, outcome, now, now);
+    }
+    newEntities.push({ key, data: totalToEntityData(total) });
+    if (predCorrect === 'TRUE') contDay = total.outcome;
 
-      [keyName, key, entity, formula] = [keyNames[5], keys[5], entities[5], formulas[5]];
-      if (isObject(entity)) {
-        total = entityToTotal(entity);
-        total.outcome = predCorrect === 'FALSE' ? total.outcome + 1 : 0;
-        total.updateDate = now;
-      } else {
-        const outcome = predCorrect === 'FALSE' ? 1 : 0;
-        total = newTotal(keyName, appBtcAddr, game, formula, outcome, now, now);
-      }
-      newEntities.push({ key, data: totalToEntityData(total) });
-      if (predCorrect === 'FALSE') contDay = total.outcome;
+    [keyName, key, entity, formula] = getAt(keyNames, keys, entities, formulas, 5);
+    if (isObject(entity)) {
+      total = entityToTotal(entity);
+      total.outcome = predCorrect === 'FALSE' ? total.outcome + 1 : 0;
+      total.updateDate = now;
+    } else {
+      const outcome = predCorrect === 'FALSE' ? 1 : 0;
+      total = newTotal(keyName, appBtcAddr, game, formula, outcome, now, now);
+    }
+    newEntities.push({ key, data: totalToEntityData(total) });
+    if (predCorrect === 'FALSE') contDay = total.outcome;
 
-      [keyName, key, entity, formula] = [keyNames[6], keys[6], entities[6], formulas[6]];
-      if (isObject(entity)) {
-        total = entityToTotal(entity);
-        if (total.outcome < contDay) {
-          [total.outcome, total.updateDate] = [contDay, now];
-          newEntities.push({ key, data: totalToEntityData(total) });
-        }
-      } else {
-        total = newTotal(keyName, appBtcAddr, game, formula, contDay, now, now);
+    [keyName, key, entity, formula] = getAt(keyNames, keys, entities, formulas, 6);
+    if (isObject(entity)) {
+      total = entityToTotal(entity);
+      total.outcome = predCorrect === 'N/A' ? total.outcome + 1 : 0;
+      total.updateDate = now;
+    } else {
+      const outcome = predCorrect === 'N/A' ? 1 : 0;
+      total = newTotal(keyName, appBtcAddr, game, formula, outcome, now, now);
+    }
+    newEntities.push({ key, data: totalToEntityData(total) });
+    if (predCorrect === 'N/A') contDay = total.outcome;
+
+    [keyName, key, entity, formula] = getAt(keyNames, keys, entities, formulas, 7);
+    if (isObject(entity)) {
+      total = entityToTotal(entity);
+      if (total.outcome < contDay) {
+        [total.outcome, total.updateDate] = [contDay, now];
         newEntities.push({ key, data: totalToEntityData(total) });
       }
-
-      [keyName, key, entity, formula] = [keyNames[7], keys[7], entities[7], formulas[7]];
-      if (isObject(entity)) {
-        total = entityToTotal(entity);
-        [total.outcome, total.updateDate] = [total.outcome + 1, now];
-      } else {
-        total = newTotal(keyName, appBtcAddr, ALL, formula, 1, now, now);
-      }
-      newEntities.push({ key, data: totalToEntityData(total) });
-
-      [keyName, key, entity, formula] = [keyNames[8], keys[8], entities[8], formulas[8]];
-      if (isObject(entity)) {
-        total = entityToTotal(entity);
-        total.outcome = predCorrect === 'TRUE' ? total.outcome + 1 : 0;
-        total.updateDate = now;
-      } else {
-        const outcome = predCorrect === 'TRUE' ? 1 : 0;
-        total = newTotal(keyName, appBtcAddr, ALL, formula, outcome, now, now);
-      }
-      newEntities.push({ key, data: totalToEntityData(total) });
-      if (predCorrect === 'TRUE') contDay = total.outcome;
-
-      [keyName, key, entity, formula] = [keyNames[9], keys[9], entities[9], formulas[9]];
-      if (isObject(entity)) {
-        total = entityToTotal(entity);
-        total.outcome = predCorrect === 'FALSE' ? total.outcome + 1 : 0;
-        total.updateDate = now;
-      } else {
-        const outcome = predCorrect === 'FALSE' ? 1 : 0;
-        total = newTotal(keyName, appBtcAddr, ALL, formula, outcome, now, now);
-      }
-      newEntities.push({ key, data: totalToEntityData(total) });
-      if (predCorrect === 'FALSE') contDay = total.outcome;
-
-      [keyName, key] = [keyNames[10], keys[10]];
-      [entity, formula] = [entities[10], formulas[10]];
-      if (isObject(entity)) {
-        total = entityToTotal(entity);
-        if (total.outcome < contDay) {
-          [total.outcome, total.updateDate] = [contDay, now];
-          newEntities.push({ key, data: totalToEntityData(total) });
-        }
-      } else {
-        total = newTotal(keyName, appBtcAddr, ALL, formula, contDay, now, now);
-        newEntities.push({ key, data: totalToEntityData(total) });
-      }
-
-      [keyName, key] = [keyNames[11], keys[11]];
-      [entity, formula] = [entities[11], formulas[11]];
-      if (isObject(entity)) {
-        total = entityToTotal(entity);
-        [total.outcome, total.updateDate] = [total.outcome + 1, now];
-      } else {
-        total = newTotal(keyName, ALL, game, formula, 1, now, now);
-      }
+    } else {
+      total = newTotal(keyName, appBtcAddr, game, formula, contDay, now, now);
       newEntities.push({ key, data: totalToEntityData(total) });
     }
+
+    [keyName, key, entity, formula] = getAt(keyNames, keys, entities, formulas, 8);
+    if (isObject(entity)) {
+      total = entityToTotal(entity);
+      [total.outcome, total.updateDate] = [total.outcome + 1, now];
+    } else {
+      total = newTotal(keyName, appBtcAddr, ALL, formula, 1, now, now);
+    }
+    newEntities.push({ key, data: totalToEntityData(total) });
+
+    [keyName, key, entity, formula] = getAt(keyNames, keys, entities, formulas, 9);
+    if (isObject(entity)) {
+      total = entityToTotal(entity);
+      total.outcome = predCorrect === 'TRUE' ? total.outcome + 1 : 0;
+      total.updateDate = now;
+    } else {
+      const outcome = predCorrect === 'TRUE' ? 1 : 0;
+      total = newTotal(keyName, appBtcAddr, ALL, formula, outcome, now, now);
+    }
+    newEntities.push({ key, data: totalToEntityData(total) });
+    if (predCorrect === 'TRUE') contDay = total.outcome;
+
+    [keyName, key, entity, formula] = getAt(keyNames, keys, entities, formulas, 10);
+    if (isObject(entity)) {
+      total = entityToTotal(entity);
+      total.outcome = predCorrect === 'FALSE' ? total.outcome + 1 : 0;
+      total.updateDate = now;
+    } else {
+      const outcome = predCorrect === 'FALSE' ? 1 : 0;
+      total = newTotal(keyName, appBtcAddr, ALL, formula, outcome, now, now);
+    }
+    newEntities.push({ key, data: totalToEntityData(total) });
+    if (predCorrect === 'FALSE') contDay = total.outcome;
+
+    [keyName, key, entity, formula] = getAt(keyNames, keys, entities, formulas, 11);
+    if (isObject(entity)) {
+      total = entityToTotal(entity);
+      total.outcome = predCorrect === 'N/A' ? total.outcome + 1 : 0;
+      total.updateDate = now;
+    } else {
+      const outcome = predCorrect === 'N/A' ? 1 : 0;
+      total = newTotal(keyName, appBtcAddr, ALL, formula, outcome, now, now);
+    }
+    newEntities.push({ key, data: totalToEntityData(total) });
+    if (predCorrect === 'N/A') contDay = total.outcome;
+
+    [keyName, key, entity, formula] = getAt(keyNames, keys, entities, formulas, 12);
+    if (isObject(entity)) {
+      total = entityToTotal(entity);
+      if (total.outcome < contDay) {
+        [total.outcome, total.updateDate] = [contDay, now];
+        newEntities.push({ key, data: totalToEntityData(total) });
+      }
+    } else {
+      total = newTotal(keyName, appBtcAddr, ALL, formula, contDay, now, now);
+      newEntities.push({ key, data: totalToEntityData(total) });
+    }
+
+    [keyName, key, entity, formula] = getAt(keyNames, keys, entities, formulas, 13);
+    if (isObject(entity)) {
+      total = entityToTotal(entity);
+      [total.outcome, total.updateDate] = [total.outcome + 1, now];
+    } else {
+      total = newTotal(keyName, ALL, game, formula, 1, now, now);
+    }
+    newEntities.push({ key, data: totalToEntityData(total) });
 
     transaction.save(newEntities);
     await transaction.commit();
@@ -365,6 +383,10 @@ const udtTotVrd = async (appBtcAddr, oldPred, newPred) => {
       else throw error;
     }
   }
+};
+
+const getAt = (keyNames, keys, entities, formulas, i) => {
+  return [keyNames[i], keys[i], entities[i], formulas[i]];
 };
 
 const newTotal = (
