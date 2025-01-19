@@ -44,7 +44,7 @@ const _udtTotCfd = async (appBtcAddr, oldPred, newPred) => {
     const entities = mapEntities(keyNames, _entities);
 
     const newEntities = [], now = Date.now();
-    let keyName, key, entity, formula, total, isFirst, contDay;
+    let keyName, key, entity, formula, total, isFirst, countCont;
 
     [keyName, key, entity, formula] = getAt(keyNames, keys, entities, formulas, 0);
     if (isObject(entity)) {
@@ -59,7 +59,7 @@ const _udtTotCfd = async (appBtcAddr, oldPred, newPred) => {
     [keyName, key, entity, formula] = getAt(keyNames, keys, entities, formulas, 1);
     if (isObject(entity)) {
       total = entityToTotal(entity);
-      if (newPred.createDate - total.anchor <= 24 * 60 * 60 * 1000) {
+      if (newPred.createDate - total.anchor <= (18 + 24) * 60 * 60 * 1000) {
         [total.outcome, total.anchor] = [total.outcome + 1, newPred.createDate];
       } else {
         [total.outcome, total.anchor] = [1, newPred.createDate];
@@ -72,17 +72,17 @@ const _udtTotCfd = async (appBtcAddr, oldPred, newPred) => {
       );
     }
     newEntities.push({ key, data: totalToEntityData(total) });
-    contDay = total.outcome;
+    countCont = total.outcome;
 
     [keyName, key, entity, formula] = getAt(keyNames, keys, entities, formulas, 2);
     if (isObject(entity)) {
       total = entityToTotal(entity);
-      if (total.outcome < contDay) {
-        [total.outcome, total.updateDate] = [contDay, now];
+      if (total.outcome < countCont) {
+        [total.outcome, total.updateDate] = [countCont, now];
         newEntities.push({ key, data: totalToEntityData(total) });
       }
     } else {
-      total = newTotal(keyName, appBtcAddr, game, formula, contDay, now, now);
+      total = newTotal(keyName, appBtcAddr, game, formula, countCont, now, now);
       newEntities.push({ key, data: totalToEntityData(total) });
     }
 
@@ -98,7 +98,7 @@ const _udtTotCfd = async (appBtcAddr, oldPred, newPred) => {
     [keyName, key, entity, formula] = getAt(keyNames, keys, entities, formulas, 4);
     if (isObject(entity)) {
       total = entityToTotal(entity);
-      if (newPred.createDate - total.anchor <= 24 * 60 * 60 * 1000) {
+      if (newPred.createDate - total.anchor <= (18 + 24) * 60 * 60 * 1000) {
         [total.outcome, total.anchor] = [total.outcome + 1, newPred.createDate];
       } else {
         [total.outcome, total.anchor] = [1, newPred.createDate];
@@ -111,17 +111,17 @@ const _udtTotCfd = async (appBtcAddr, oldPred, newPred) => {
       );
     }
     newEntities.push({ key, data: totalToEntityData(total) });
-    contDay = total.outcome;
+    countCont = total.outcome;
 
     [keyName, key, entity, formula] = getAt(keyNames, keys, entities, formulas, 5);
     if (isObject(entity)) {
       total = entityToTotal(entity);
-      if (total.outcome < contDay) {
-        [total.outcome, total.updateDate] = [contDay, now];
+      if (total.outcome < countCont) {
+        [total.outcome, total.updateDate] = [countCont, now];
         newEntities.push({ key, data: totalToEntityData(total) });
       }
     } else {
-      total = newTotal(keyName, appBtcAddr, ALL, formula, contDay, now, now);
+      total = newTotal(keyName, appBtcAddr, ALL, formula, countCont, now, now);
       newEntities.push({ key, data: totalToEntityData(total) });
     }
 
@@ -218,7 +218,7 @@ const _udtTotVrd = async (appBtcAddr, oldPred, newPred) => {
     const entities = mapEntities(keyNames, _entities);
 
     const newEntities = [], now = Date.now();
-    let keyName, key, entity, formula, total, contDay;
+    let keyName, key, entity, formula, total, countCont;
 
     [keyName, key, entity, formula] = getAt(keyNames, keys, entities, formulas, 0);
     if (isObject(entity)) {
@@ -260,7 +260,7 @@ const _udtTotVrd = async (appBtcAddr, oldPred, newPred) => {
       total = newTotal(keyName, appBtcAddr, game, formula, outcome, now, now);
     }
     newEntities.push({ key, data: totalToEntityData(total) });
-    if (predCorrect === 'TRUE') contDay = total.outcome;
+    if (predCorrect === 'TRUE') countCont = total.outcome;
 
     [keyName, key, entity, formula] = getAt(keyNames, keys, entities, formulas, 5);
     if (isObject(entity)) {
@@ -272,7 +272,7 @@ const _udtTotVrd = async (appBtcAddr, oldPred, newPred) => {
       total = newTotal(keyName, appBtcAddr, game, formula, outcome, now, now);
     }
     newEntities.push({ key, data: totalToEntityData(total) });
-    if (predCorrect === 'FALSE') contDay = total.outcome;
+    if (predCorrect === 'FALSE') countCont = total.outcome;
 
     [keyName, key, entity, formula] = getAt(keyNames, keys, entities, formulas, 6);
     if (isObject(entity)) {
@@ -284,17 +284,17 @@ const _udtTotVrd = async (appBtcAddr, oldPred, newPred) => {
       total = newTotal(keyName, appBtcAddr, game, formula, outcome, now, now);
     }
     newEntities.push({ key, data: totalToEntityData(total) });
-    if (predCorrect === 'N/A') contDay = total.outcome;
+    if (predCorrect === 'N/A') countCont = total.outcome;
 
     [keyName, key, entity, formula] = getAt(keyNames, keys, entities, formulas, 7);
     if (isObject(entity)) {
       total = entityToTotal(entity);
-      if (total.outcome < contDay) {
-        [total.outcome, total.updateDate] = [contDay, now];
+      if (total.outcome < countCont) {
+        [total.outcome, total.updateDate] = [countCont, now];
         newEntities.push({ key, data: totalToEntityData(total) });
       }
     } else {
-      total = newTotal(keyName, appBtcAddr, game, formula, contDay, now, now);
+      total = newTotal(keyName, appBtcAddr, game, formula, countCont, now, now);
       newEntities.push({ key, data: totalToEntityData(total) });
     }
 
@@ -317,7 +317,7 @@ const _udtTotVrd = async (appBtcAddr, oldPred, newPred) => {
       total = newTotal(keyName, appBtcAddr, ALL, formula, outcome, now, now);
     }
     newEntities.push({ key, data: totalToEntityData(total) });
-    if (predCorrect === 'TRUE') contDay = total.outcome;
+    if (predCorrect === 'TRUE') countCont = total.outcome;
 
     [keyName, key, entity, formula] = getAt(keyNames, keys, entities, formulas, 10);
     if (isObject(entity)) {
@@ -329,7 +329,7 @@ const _udtTotVrd = async (appBtcAddr, oldPred, newPred) => {
       total = newTotal(keyName, appBtcAddr, ALL, formula, outcome, now, now);
     }
     newEntities.push({ key, data: totalToEntityData(total) });
-    if (predCorrect === 'FALSE') contDay = total.outcome;
+    if (predCorrect === 'FALSE') countCont = total.outcome;
 
     [keyName, key, entity, formula] = getAt(keyNames, keys, entities, formulas, 11);
     if (isObject(entity)) {
@@ -341,17 +341,17 @@ const _udtTotVrd = async (appBtcAddr, oldPred, newPred) => {
       total = newTotal(keyName, appBtcAddr, ALL, formula, outcome, now, now);
     }
     newEntities.push({ key, data: totalToEntityData(total) });
-    if (predCorrect === 'N/A') contDay = total.outcome;
+    if (predCorrect === 'N/A') countCont = total.outcome;
 
     [keyName, key, entity, formula] = getAt(keyNames, keys, entities, formulas, 12);
     if (isObject(entity)) {
       total = entityToTotal(entity);
-      if (total.outcome < contDay) {
-        [total.outcome, total.updateDate] = [contDay, now];
+      if (total.outcome < countCont) {
+        [total.outcome, total.updateDate] = [countCont, now];
         newEntities.push({ key, data: totalToEntityData(total) });
       }
     } else {
-      total = newTotal(keyName, appBtcAddr, ALL, formula, contDay, now, now);
+      total = newTotal(keyName, appBtcAddr, ALL, formula, countCont, now, now);
       newEntities.push({ key, data: totalToEntityData(total) });
     }
 
