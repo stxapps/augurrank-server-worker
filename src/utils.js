@@ -36,6 +36,10 @@ export const randomString = (length) => {
   return result;
 };
 
+export const getStatusText = (res) => {
+  return `${res.status} ${res.statusText}`;
+};
+
 export const mergePreds = (...preds) => {
   const bin = {
     updateDate: null,

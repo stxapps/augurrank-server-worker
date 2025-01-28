@@ -1,6 +1,6 @@
 import dataApi from './data';
 import dataTotalApi from './data-total';
-import { PDG, SCS, NOT_FOUND_ERROR } from './const';
+import { PDG, SCS, ERR_NOT_FOUND } from './const';
 import {
   randomString, deriveTxInfo, getPredCorrect, getPredAnchorPrice, getPredTargetPrice,
 } from './utils';
@@ -10,17 +10,15 @@ const _main = async () => {
   const logKey = `${startDate.getTime()}-${randomString(4)}`;
   console.log(`(${logKey}) Worker(to-verified) starts on ${startDate.toISOString()}`);
 
-  const { appBtcAddrs, preds } = await dataApi.getVerifyingPreds();
+  const { preds } = await dataApi.getVerifyingPreds();
   console.log(`(${logKey}) got ${preds.length} verifying preds`);
 
-  for (let i = 0; i < appBtcAddrs.length; i++) {
-    const [appBtcAddr, pred] = [appBtcAddrs[i], preds[i]];
-
+  for (const pred of preds) {
     let txInfo;
     try {
       txInfo = await dataApi.fetchTxInfo(pred.vTxId);
     } catch (error) {
-      if (error.message !== NOT_FOUND_ERROR) {
+      if (error.message !== ERR_NOT_FOUND) {
         throw error; // server error, network error, throw.
       }
       if (Date.now() - pred.createDate < 60 * 60 * 1000) {
@@ -44,10 +42,10 @@ const _main = async () => {
       }
     }
 
-    const udtRst = await dataApi.updatePred(appBtcAddr, newPred);
+    const udtRst = await dataApi.updatePred(newPred);
     console.log(`(${logKey}) ${pred.id} saved to Pred`);
 
-    await dataTotalApi.udtTotVrd(appBtcAddr, udtRst.oldPred, udtRst.newPred);
+    await dataTotalApi.udtTotVrd(udtRst.oldPred, udtRst.newPred);
     console.log(`(${logKey}) ${pred.id} saved to Total`);
   }
 

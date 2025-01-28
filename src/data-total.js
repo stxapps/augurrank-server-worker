@@ -5,24 +5,24 @@ import { sleep, isObject, sample, getPredStatus, isNotNullIn } from './utils';
 
 const datastore = new Datastore();
 
-const _udtTotCfd = async (appBtcAddr, oldPred, newPred) => {
+const _udtTotCfd = async (oldPred, newPred) => {
   const doAdd = (
     getPredStatus(newPred) === PRED_STATUS_CONFIRMED_OK &&
     (oldPred === null || getPredStatus(oldPred) !== PRED_STATUS_CONFIRMED_OK)
   )
   if (!doAdd) return;
 
-  const { game, value: predValue } = newPred;
+  const { stxAddr, game, value: predValue } = newPred;
 
   const keyNames = [
-    `${appBtcAddr}-${game}-${predValue}-confirmed_ok-count`,
-    `${appBtcAddr}-${game}-confirmed_ok-count-cont-day`,
-    `${appBtcAddr}-${game}-confirmed_ok-max-cont-day`,
-    `${appBtcAddr}-${predValue}-confirmed_ok-count`,
-    `${appBtcAddr}-confirmed_ok-count-cont-day`,
-    `${appBtcAddr}-confirmed_ok-max-cont-day`,
+    `${stxAddr}-${game}-${predValue}-confirmed_ok-count`,
+    `${stxAddr}-${game}-confirmed_ok-count-cont-day`,
+    `${stxAddr}-${game}-confirmed_ok-max-cont-day`,
+    `${stxAddr}-${predValue}-confirmed_ok-count`,
+    `${stxAddr}-confirmed_ok-count-cont-day`,
+    `${stxAddr}-confirmed_ok-max-cont-day`,
     `${game}-${predValue}-confirmed_ok-count`,
-    `${game}-count-appBtcAddr`,
+    `${game}-count-stxAddr`,
   ];
   const formulas = [
     `${predValue}-confirmed_ok-count`,
@@ -32,7 +32,7 @@ const _udtTotCfd = async (appBtcAddr, oldPred, newPred) => {
     'confirmed_ok-count-cont-day',
     'confirmed_ok-max-cont-day',
     `${predValue}-confirmed_ok-count`,
-    'count-appBtcAddr',
+    'count-stxAddr',
   ];
   const keys = keyNames.map(kn => datastore.key([TOTAL, kn]));
 
@@ -51,7 +51,7 @@ const _udtTotCfd = async (appBtcAddr, oldPred, newPred) => {
       total = entityToTotal(entity);
       [total.outcome, total.updateDate] = [total.outcome + 1, now];
     } else {
-      total = newTotal(keyName, appBtcAddr, game, formula, 1, now, now);
+      total = newTotal(keyName, stxAddr, game, formula, 1, now, now);
       isFirst = true;
     }
     newEntities.push({ key, data: totalToEntityData(total) });
@@ -68,7 +68,7 @@ const _udtTotCfd = async (appBtcAddr, oldPred, newPred) => {
       total.updateDate = now;
     } else {
       total = newTotal(
-        keyName, appBtcAddr, game, formula, 1, now, now, newPred.createDate
+        keyName, stxAddr, game, formula, 1, now, now, newPred.createDate
       );
     }
     newEntities.push({ key, data: totalToEntityData(total) });
@@ -82,7 +82,7 @@ const _udtTotCfd = async (appBtcAddr, oldPred, newPred) => {
         newEntities.push({ key, data: totalToEntityData(total) });
       }
     } else {
-      total = newTotal(keyName, appBtcAddr, game, formula, countCont, now, now);
+      total = newTotal(keyName, stxAddr, game, formula, countCont, now, now);
       newEntities.push({ key, data: totalToEntityData(total) });
     }
 
@@ -91,7 +91,7 @@ const _udtTotCfd = async (appBtcAddr, oldPred, newPred) => {
       total = entityToTotal(entity);
       [total.outcome, total.updateDate] = [total.outcome + 1, now];
     } else {
-      total = newTotal(keyName, appBtcAddr, ALL, formula, 1, now, now);
+      total = newTotal(keyName, stxAddr, ALL, formula, 1, now, now);
     }
     newEntities.push({ key, data: totalToEntityData(total) });
 
@@ -107,7 +107,7 @@ const _udtTotCfd = async (appBtcAddr, oldPred, newPred) => {
       total.updateDate = now;
     } else {
       total = newTotal(
-        keyName, appBtcAddr, ALL, formula, 1, now, now, newPred.createDate
+        keyName, stxAddr, ALL, formula, 1, now, now, newPred.createDate
       );
     }
     newEntities.push({ key, data: totalToEntityData(total) });
@@ -121,7 +121,7 @@ const _udtTotCfd = async (appBtcAddr, oldPred, newPred) => {
         newEntities.push({ key, data: totalToEntityData(total) });
       }
     } else {
-      total = newTotal(keyName, appBtcAddr, ALL, formula, countCont, now, now);
+      total = newTotal(keyName, stxAddr, ALL, formula, countCont, now, now);
       newEntities.push({ key, data: totalToEntityData(total) });
     }
 
@@ -154,11 +154,11 @@ const _udtTotCfd = async (appBtcAddr, oldPred, newPred) => {
   }
 };
 
-const udtTotCfd = async (appBtcAddr, oldPred, newPred) => {
+const udtTotCfd = async (oldPred, newPred) => {
   const nTries = 3;
   for (let currentTry = 1; currentTry <= nTries; currentTry++) {
     try {
-      await _udtTotCfd(appBtcAddr, oldPred, newPred);
+      await _udtTotCfd(oldPred, newPred);
       break;
     } catch (error) {
       if (currentTry < nTries) await sleep(sample([100, 200, 280, 350, 500]));
@@ -167,29 +167,29 @@ const udtTotCfd = async (appBtcAddr, oldPred, newPred) => {
   }
 };
 
-const _udtTotVrd = async (appBtcAddr, oldPred, newPred) => {
+const _udtTotVrd = async (oldPred, newPred) => {
   const doAdd = (
     getPredStatus(newPred) === PRED_STATUS_VERIFIED_OK &&
     (oldPred === null || getPredStatus(oldPred) !== PRED_STATUS_VERIFIED_OK)
   )
   if (!doAdd) return;
 
-  const { game, value: predValue, correct: predCorrect } = newPred;
+  const { stxAddr, game, value: predValue, correct: predCorrect } = newPred;
 
   const keyNames = [
-    `${appBtcAddr}-${game}-${predValue}-confirmed_ok-count`,
-    `${appBtcAddr}-${predValue}-confirmed_ok-count`,
+    `${stxAddr}-${game}-${predValue}-confirmed_ok-count`,
+    `${stxAddr}-${predValue}-confirmed_ok-count`,
     `${game}-${predValue}-confirmed_ok-count`,
-    `${appBtcAddr}-${game}-${predValue}-verified_ok-${predCorrect}-count`,
-    `${appBtcAddr}-${game}-verified_ok-TRUE-count-cont`,
-    `${appBtcAddr}-${game}-verified_ok-FALSE-count-cont`,
-    `${appBtcAddr}-${game}-verified_ok-N/A-count-cont`,
-    `${appBtcAddr}-${game}-verified_ok-${predCorrect}-max-cont`,
-    `${appBtcAddr}-${predValue}-verified_ok-${predCorrect}-count`,
-    `${appBtcAddr}-verified_ok-TRUE-count-cont`,
-    `${appBtcAddr}-verified_ok-FALSE-count-cont`,
-    `${appBtcAddr}-verified_ok-N/A-count-cont`,
-    `${appBtcAddr}-verified_ok-${predCorrect}-max-cont`,
+    `${stxAddr}-${game}-${predValue}-verified_ok-${predCorrect}-count`,
+    `${stxAddr}-${game}-verified_ok-TRUE-count-cont`,
+    `${stxAddr}-${game}-verified_ok-FALSE-count-cont`,
+    `${stxAddr}-${game}-verified_ok-N/A-count-cont`,
+    `${stxAddr}-${game}-verified_ok-${predCorrect}-max-cont`,
+    `${stxAddr}-${predValue}-verified_ok-${predCorrect}-count`,
+    `${stxAddr}-verified_ok-TRUE-count-cont`,
+    `${stxAddr}-verified_ok-FALSE-count-cont`,
+    `${stxAddr}-verified_ok-N/A-count-cont`,
+    `${stxAddr}-verified_ok-${predCorrect}-max-cont`,
     `${game}-${predValue}-verified_ok-${predCorrect}-count`
   ];
   const formulas = [
@@ -246,7 +246,7 @@ const _udtTotVrd = async (appBtcAddr, oldPred, newPred) => {
       total = entityToTotal(entity);
       [total.outcome, total.updateDate] = [total.outcome + 1, now];
     } else {
-      total = newTotal(keyName, appBtcAddr, game, formula, 1, now, now);
+      total = newTotal(keyName, stxAddr, game, formula, 1, now, now);
     }
     newEntities.push({ key, data: totalToEntityData(total) });
 
@@ -257,7 +257,7 @@ const _udtTotVrd = async (appBtcAddr, oldPred, newPred) => {
       total.updateDate = now;
     } else {
       const outcome = predCorrect === 'TRUE' ? 1 : 0;
-      total = newTotal(keyName, appBtcAddr, game, formula, outcome, now, now);
+      total = newTotal(keyName, stxAddr, game, formula, outcome, now, now);
     }
     newEntities.push({ key, data: totalToEntityData(total) });
     if (predCorrect === 'TRUE') countCont = total.outcome;
@@ -269,7 +269,7 @@ const _udtTotVrd = async (appBtcAddr, oldPred, newPred) => {
       total.updateDate = now;
     } else {
       const outcome = predCorrect === 'FALSE' ? 1 : 0;
-      total = newTotal(keyName, appBtcAddr, game, formula, outcome, now, now);
+      total = newTotal(keyName, stxAddr, game, formula, outcome, now, now);
     }
     newEntities.push({ key, data: totalToEntityData(total) });
     if (predCorrect === 'FALSE') countCont = total.outcome;
@@ -281,7 +281,7 @@ const _udtTotVrd = async (appBtcAddr, oldPred, newPred) => {
       total.updateDate = now;
     } else {
       const outcome = predCorrect === 'N/A' ? 1 : 0;
-      total = newTotal(keyName, appBtcAddr, game, formula, outcome, now, now);
+      total = newTotal(keyName, stxAddr, game, formula, outcome, now, now);
     }
     newEntities.push({ key, data: totalToEntityData(total) });
     if (predCorrect === 'N/A') countCont = total.outcome;
@@ -294,7 +294,7 @@ const _udtTotVrd = async (appBtcAddr, oldPred, newPred) => {
         newEntities.push({ key, data: totalToEntityData(total) });
       }
     } else {
-      total = newTotal(keyName, appBtcAddr, game, formula, countCont, now, now);
+      total = newTotal(keyName, stxAddr, game, formula, countCont, now, now);
       newEntities.push({ key, data: totalToEntityData(total) });
     }
 
@@ -303,7 +303,7 @@ const _udtTotVrd = async (appBtcAddr, oldPred, newPred) => {
       total = entityToTotal(entity);
       [total.outcome, total.updateDate] = [total.outcome + 1, now];
     } else {
-      total = newTotal(keyName, appBtcAddr, ALL, formula, 1, now, now);
+      total = newTotal(keyName, stxAddr, ALL, formula, 1, now, now);
     }
     newEntities.push({ key, data: totalToEntityData(total) });
 
@@ -314,7 +314,7 @@ const _udtTotVrd = async (appBtcAddr, oldPred, newPred) => {
       total.updateDate = now;
     } else {
       const outcome = predCorrect === 'TRUE' ? 1 : 0;
-      total = newTotal(keyName, appBtcAddr, ALL, formula, outcome, now, now);
+      total = newTotal(keyName, stxAddr, ALL, formula, outcome, now, now);
     }
     newEntities.push({ key, data: totalToEntityData(total) });
     if (predCorrect === 'TRUE') countCont = total.outcome;
@@ -326,7 +326,7 @@ const _udtTotVrd = async (appBtcAddr, oldPred, newPred) => {
       total.updateDate = now;
     } else {
       const outcome = predCorrect === 'FALSE' ? 1 : 0;
-      total = newTotal(keyName, appBtcAddr, ALL, formula, outcome, now, now);
+      total = newTotal(keyName, stxAddr, ALL, formula, outcome, now, now);
     }
     newEntities.push({ key, data: totalToEntityData(total) });
     if (predCorrect === 'FALSE') countCont = total.outcome;
@@ -338,7 +338,7 @@ const _udtTotVrd = async (appBtcAddr, oldPred, newPred) => {
       total.updateDate = now;
     } else {
       const outcome = predCorrect === 'N/A' ? 1 : 0;
-      total = newTotal(keyName, appBtcAddr, ALL, formula, outcome, now, now);
+      total = newTotal(keyName, stxAddr, ALL, formula, outcome, now, now);
     }
     newEntities.push({ key, data: totalToEntityData(total) });
     if (predCorrect === 'N/A') countCont = total.outcome;
@@ -351,7 +351,7 @@ const _udtTotVrd = async (appBtcAddr, oldPred, newPred) => {
         newEntities.push({ key, data: totalToEntityData(total) });
       }
     } else {
-      total = newTotal(keyName, appBtcAddr, ALL, formula, countCont, now, now);
+      total = newTotal(keyName, stxAddr, ALL, formula, countCont, now, now);
       newEntities.push({ key, data: totalToEntityData(total) });
     }
 
@@ -372,11 +372,11 @@ const _udtTotVrd = async (appBtcAddr, oldPred, newPred) => {
   }
 };
 
-const udtTotVrd = async (appBtcAddr, oldPred, newPred) => {
+const udtTotVrd = async (oldPred, newPred) => {
   const nTries = 3;
   for (let currentTry = 1; currentTry <= nTries; currentTry++) {
     try {
-      await _udtTotVrd(appBtcAddr, oldPred, newPred);
+      await _udtTotVrd(oldPred, newPred);
       break;
     } catch (error) {
       if (currentTry < nTries) await sleep(sample([100, 200, 280, 350, 500]));
@@ -390,10 +390,10 @@ const getAt = (keyNames, keys, entities, formulas, i) => {
 };
 
 const newTotal = (
-  keyName, appBtcAddr, game, formula, outcome, createDate, updateDate, anchor = null
+  keyName, stxAddr, game, formula, outcome, createDate, updateDate, anchor = null
 ) => {
   const total = {
-    keyName, appBtcAddr, game, formula, outcome, createDate, updateDate,
+    keyName, stxAddr, game, formula, outcome, createDate, updateDate,
   };
   if (anchor !== null) total.anchor = anchor;
   return total;
@@ -401,7 +401,7 @@ const newTotal = (
 
 const totalToEntityData = (total) => {
   const data = [
-    { name: 'appBtcAddr', value: total.appBtcAddr },
+    { name: 'stxAddr', value: total.stxAddr },
     { name: 'game', value: total.game },
     { name: 'formula', value: total.formula },
     { name: 'outcome', value: total.outcome, excludeFromIndexes: true },
@@ -417,7 +417,7 @@ const totalToEntityData = (total) => {
 const entityToTotal = (entity) => {
   const total = {
     keyName: entity[datastore.KEY].name,
-    appBtcAddr: entity.appBtcAddr,
+    stxAddr: entity.stxAddr,
     game: entity.game,
     formula: entity.formula,
     outcome: entity.outcome,

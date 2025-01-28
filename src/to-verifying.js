@@ -1,5 +1,5 @@
 import {
-  makeContractCall, broadcastTransaction, PostConditionMode, Cl,
+  fetchNonce, makeContractCall, broadcastTransaction, PostConditionMode, Cl,
 } from '@stacks/transactions';
 
 import dataApi from './data';
@@ -13,18 +13,20 @@ const _main = async () => {
   console.log(`(${logKey}) Worker(to-verifying) starts on ${startDate.toISOString()}`);
 
   const burnHeight = await dataApi.fetchBurnHeight();
-  const { appBtcAddrs, preds } = await dataApi.getVerifiablePreds(burnHeight);
+  const { preds } = await dataApi.getVerifiablePreds(burnHeight);
   console.log(`(${logKey}) got ${preds.length} verifiable preds`);
 
-  for (let i = 0; i < appBtcAddrs.length; i++) {
-    const [appBtcAddr, pred] = [appBtcAddrs[i], preds[i]];
-    const { contract, stxAddr, seq, targetBurnHeight } = pred;
+  let nonce = await fetchNonce({ address: CONTRACT_ADDR });
+
+  for (const pred of preds) {
+    const { stxAddr, contract, seq, targetBurnHeight } = pred;
 
     const targetHeight = await dataApi.fetchHeight(targetBurnHeight);
     console.log(`(${logKey}) pred: ${pred.id} got targetHeight: ${targetHeight}`);
 
     let functionName = 'verify';
     let functionArgs = [Cl.principal(stxAddr), Cl.uint(seq)];
+    let fee = 4191; // might diff btw. verify and not-available
     if (targetHeight === -1) {
       functionName = 'not-available';
     } else {
@@ -40,8 +42,8 @@ const _main = async () => {
       functionArgs,
       postConditionMode: PostConditionMode.Deny,
       postConditions: [],
-      fee: 4191, //22000 // might diff btw. verify and not-available
-      //nonce: n, // can set at the top and plus one, no need to fetch every time
+      fee,
+      nonce,
       validateWithAbi: true,
     };
     /** @ts-expect-error */
@@ -49,12 +51,14 @@ const _main = async () => {
     const response = await broadcastTransaction({ transaction, network: 'mainnet' });
     console.log(`(${logKey}) called the contract with txid: ${response.txid}`);
 
-    const newPred = mergePreds(pred, { vTxId: response.txid, targetHeight });
-    await dataApi.updatePred(appBtcAddr, newPred);
+    let txId = response.txid;
+    if (!txId.startsWith('0x')) txId = '0x' + txId;
+
+    const newPred = mergePreds(pred, { vTxId: txId, targetHeight });
+    await dataApi.updatePred(newPred);
     console.log(`(${logKey}) saved newPred to Datastore`);
 
-    // need to wait to be confirmed? can do next one immediately?
-    break;
+    nonce += BigInt(1);
   }
 
   console.log(`(${logKey}) Worker finishes on ${(new Date()).toISOString()}.`);

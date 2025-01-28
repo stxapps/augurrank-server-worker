@@ -1,7 +1,7 @@
 import dataApi from './data';
 import dataTotalApi from './data-total';
 import {
-  GAME_BTC, GAME_BTC_LEAD_BURN_HEIGHT, PDG, SCS, ABT_BY_NF, NOT_FOUND_ERROR,
+  GAME_BTC, GAME_BTC_LEAD_BURN_HEIGHT, PDG, SCS, ABT_BY_NF, ERR_NOT_FOUND,
 } from './const';
 import { randomString, deriveTxInfo, getPredSeq } from './utils';
 
@@ -10,17 +10,15 @@ const _main = async () => {
   const logKey = `${startDate.getTime()}-${randomString(4)}`;
   console.log(`(${logKey}) Worker(to-confirmed) starts on ${startDate.toISOString()}`);
 
-  const { appBtcAddrs, preds } = await dataApi.getUnconfirmedPreds();
+  const { preds } = await dataApi.getUnconfirmedPreds();
   console.log(`(${logKey}) got ${preds.length} unconfirmed preds`);
 
-  for (let i = 0; i < appBtcAddrs.length; i++) {
-    const [appBtcAddr, pred] = [appBtcAddrs[i], preds[i]];
-
+  for (const pred of preds) {
     let txInfo;
     try {
       txInfo = await dataApi.fetchTxInfo(pred.cTxId);
     } catch (error) {
-      if (error.message !== NOT_FOUND_ERROR) {
+      if (error.message !== ERR_NOT_FOUND) {
         throw error; // server error, network error, throw.
       }
       if (Date.now() - pred.createDate < 60 * 60 * 1000) {
@@ -29,7 +27,7 @@ const _main = async () => {
       }
 
       // Not in mempool anymore like cannot confirm i.e. wrong nonce, not enough fee
-      txInfo = { tx_id: pred.cTxId, status: ABT_BY_NF };
+      txInfo = { tx_id: pred.cTxId, tx_status: ABT_BY_NF };
     }
     txInfo = deriveTxInfo(txInfo);
     if (txInfo.status === PDG) continue;
@@ -47,10 +45,10 @@ const _main = async () => {
       }
     }
 
-    const udtRst = await dataApi.updatePred(appBtcAddr, newPred);
+    const udtRst = await dataApi.updatePred(newPred);
     console.log(`(${logKey}) ${pred.id} saved to Pred`);
 
-    await dataTotalApi.udtTotCfd(appBtcAddr, udtRst.oldPred, udtRst.newPred);
+    await dataTotalApi.udtTotCfd(udtRst.oldPred, udtRst.newPred);
     console.log(`(${logKey}) ${pred.id} saved to Total`);
   }
 

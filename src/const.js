@@ -25,4 +25,4 @@ export const ABT_BY_NF = 'abort_by_not_found';
 
 export const ALL = 'all';
 
-export const NOT_FOUND_ERROR = 'NOT_FOUND_ERROR';
+export const ERR_NOT_FOUND = 'ERR_NOT_FOUND';

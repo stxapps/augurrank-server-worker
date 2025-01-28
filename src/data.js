@@ -1,14 +1,14 @@
 import { Datastore, PropertyFilter, and } from '@google-cloud/datastore';
 
-import { PRED, SCS, NOT_FOUND_ERROR } from './const';
-import { isObject, isNumber, mergePreds, isNotNullIn } from './utils';
+import { PRED, SCS, ERR_NOT_FOUND } from './const';
+import { isObject, isNumber, getStatusText, mergePreds, isNotNullIn } from './utils';
 
 const datastore = new Datastore();
 
 const fetchBurnHeight = async () => {
   const res = await fetch('https://api.hiro.so/extended');
   if (!res.ok) {
-    throw new Error(res.statusText);
+    throw new Error(getStatusText(res));
   }
   const obj = await res.json();
   const height = obj.chain_tip.burn_block_height;
@@ -25,14 +25,14 @@ const fetchHeight = async (burnHeight) => {
     return -1;
   }
   if (!res.ok) {
-    throw new Error(res.statusText);
+    throw new Error(getStatusText(res));
   }
   let obj = await res.json();
   const hash = obj.stacks_blocks[obj.stacks_blocks.length - 1];
 
   res = await fetch(`https://api.hiro.so/extended/v2/blocks/${hash}`);
   if (!res.ok) {
-    throw new Error(res.statusText);
+    throw new Error(getStatusText(res));
   }
   obj = await res.json();
   const height = obj.height;
@@ -44,10 +44,10 @@ const fetchHeight = async (burnHeight) => {
 const fetchTxInfo = async (txId) => {
   const res = await fetch(`https://api.hiro.so/extended/v1/tx/${txId}`);
   if (res.status === 404) {
-    throw new Error(NOT_FOUND_ERROR);
+    throw new Error(ERR_NOT_FOUND);
   }
   if (!res.ok) {
-    throw new Error(res.statusText);
+    throw new Error(getStatusText(res));
   }
   const obj = await res.json();
   return obj;
@@ -61,19 +61,17 @@ const getUnconfirmedPreds = async () => {
 
   const [entities] = await datastore.runQuery(query);
 
-  const appBtcAddrs = [], preds = [];
+  const preds = [];
   if (Array.isArray(entities)) {
     for (const entity of entities) {
       if (!isObject(entity)) continue;
 
-      const appBtcAddr = entity.appBtcAddr;
       const pred = entityToPred(entity);
-      appBtcAddrs.push(appBtcAddr);
       preds.push(pred);
     }
   }
 
-  return { appBtcAddrs, preds };
+  return { preds };
 };
 
 const getVerifiablePreds = async (burnHeight) => {
@@ -88,19 +86,17 @@ const getVerifiablePreds = async (burnHeight) => {
 
   const [entities] = await datastore.runQuery(query);
 
-  const appBtcAddrs = [], preds = [];
+  const preds = [];
   if (Array.isArray(entities)) {
     for (const entity of entities) {
       if (!isObject(entity)) continue;
 
-      const appBtcAddr = entity.appBtcAddr;
       const pred = entityToPred(entity);
-      appBtcAddrs.push(appBtcAddr);
       preds.push(pred);
     }
   }
 
-  return { appBtcAddrs, preds };
+  return { preds };
 };
 
 const getVerifyingPreds = async () => {
@@ -111,22 +107,20 @@ const getVerifyingPreds = async () => {
 
   const [entities] = await datastore.runQuery(query);
 
-  const appBtcAddrs = [], preds = [];
+  const preds = [];
   if (Array.isArray(entities)) {
     for (const entity of entities) {
       if (!isObject(entity)) continue;
 
-      const appBtcAddr = entity.appBtcAddr;
       const pred = entityToPred(entity);
-      appBtcAddrs.push(appBtcAddr);
       preds.push(pred);
     }
   }
 
-  return { appBtcAddrs, preds };
+  return { preds };
 };
 
-const updatePred = async (appBtcAddr, pred) => {
+const updatePred = async (pred) => {
   const predKey = datastore.key([PRED, pred.id]);
 
   const transaction = datastore.transaction();
@@ -138,14 +132,10 @@ const updatePred = async (appBtcAddr, pred) => {
       await transaction.rollback();
       throw new Error('Invalid oldEntity');
     }
-    if (oldEntity.appBtcAddr !== appBtcAddr) {
-      await transaction.rollback();
-      throw new Error('Invalid appBtcAddr');
-    }
     const oldPred = entityToPred(oldEntity);
 
     const newPred = mergePreds(oldPred, pred);
-    const newEntity = { key: predKey, data: predToEntityData(appBtcAddr, newPred) }
+    const newEntity = { key: predKey, data: predToEntityData(newPred) }
 
     transaction.save(newEntity);
     await transaction.commit();
@@ -156,17 +146,17 @@ const updatePred = async (appBtcAddr, pred) => {
   }
 };
 
-const predToEntityData = (appBtcAddr, pred) => {
+const predToEntityData = (pred) => {
   // Need cStatus, vTxId, and vStatus for Datastore queries in worker.
   let isCstRqd = false, isVxiRqd = false, isVstRqd = false;
 
   const data = [
+    { name: 'stxAddr', value: pred.stxAddr },
     { name: 'game', value: pred.game },
     { name: 'contract', value: pred.contract },
     { name: 'value', value: pred.value },
     { name: 'createDate', value: new Date(pred.createDate) },
     { name: 'updateDate', value: new Date(pred.updateDate) },
-    { name: 'stxAddr', value: pred.stxAddr },
   ];
   if ('cTxId' in pred) {
     data.push({ name: 'cTxId', value: pred.cTxId });
@@ -215,21 +205,18 @@ const predToEntityData = (appBtcAddr, pred) => {
     data.push({ name: 'correct', value: pred.correct });
   }
 
-  // IMPORTANT: pred doesn't have appBtcAddr, but predEntity must have it!
-  data.push({ name: 'appBtcAddr', value: appBtcAddr });
-
   return data;
 };
 
 const entityToPred = (entity) => {
   const pred = {
     id: entity[datastore.KEY].name,
+    stxAddr: entity.stxAddr,
     game: entity.game,
     contract: entity.contract,
     value: entity.value,
     createDate: entity.createDate.getTime(),
     updateDate: entity.updateDate.getTime(),
-    stxAddr: entity.stxAddr,
   };
   if (isNotNullIn(entity, 'cTxId')) pred.cTxId = entity.cTxId;
   if (isNotNullIn(entity, 'pStatus')) pred.pStatus = entity.pStatus;
