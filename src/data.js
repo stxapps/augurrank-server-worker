@@ -1,7 +1,9 @@
 import { Datastore, PropertyFilter, and } from '@google-cloud/datastore';
 
 import { PRED, SCS, ERR_NOT_FOUND } from './const';
-import { isObject, isNumber, getStatusText, mergePreds, isNotNullIn } from './utils';
+import {
+  isObject, isString, isNumber, getStatusText, mergePreds, isNotNullIn,
+} from './utils';
 
 const datastore = new Datastore();
 
@@ -104,6 +106,29 @@ const getVerifyingPreds = async () => {
   query.filter(new PropertyFilter('vStatus', '=', null));
   query.order('createDate', { descending: false }); // for cont-day's anchor in Total
   query.limit(40);
+
+  const [entities] = await datastore.runQuery(query);
+
+  const preds = [];
+  if (Array.isArray(entities)) {
+    for (const entity of entities) {
+      if (!isObject(entity)) continue;
+
+      const pred = entityToPred(entity);
+      preds.push(pred);
+    }
+  }
+
+  return { preds };
+};
+
+const queryPreds = async (stxAddr, game) => {
+  const fltrs = [];
+  if (isString(stxAddr)) fltrs.push(new PropertyFilter('stxAddr', '=', stxAddr));
+  if (isString(game)) fltrs.push(new PropertyFilter('game', '=', game));
+
+  const query = datastore.createQuery(PRED);
+  query.filter(and(fltrs));
 
   const [entities] = await datastore.runQuery(query);
 
@@ -241,7 +266,7 @@ const entityToPred = (entity) => {
 
 const data = {
   fetchBurnHeight, fetchHeight, fetchTxInfo, getUnconfirmedPreds, getVerifiablePreds,
-  getVerifyingPreds, updatePred,
+  getVerifyingPreds, queryPreds, updatePred,
 };
 
 export default data;

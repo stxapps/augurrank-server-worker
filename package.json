@@ -14,6 +14,7 @@
     "to-confirmed-local": "GOOGLE_APPLICATION_CREDENTIALS=~/.config/gcloud/legacy_credentials/brace@brace.to/augurrank-001-bde1aaaabf2f.json node --import=specifier-resolution-node/register src/to-confirmed.js",
     "to-verifying-local": "GOOGLE_APPLICATION_CREDENTIALS=~/.config/gcloud/legacy_credentials/brace@brace.to/augurrank-001-bde1aaaabf2f.json node --import=specifier-resolution-node/register src/to-verifying.js",
     "to-verified-local": "GOOGLE_APPLICATION_CREDENTIALS=~/.config/gcloud/legacy_credentials/brace@brace.to/augurrank-001-bde1aaaabf2f.json node --import=specifier-resolution-node/register src/to-verified.js",
+    "revise-totals-local": "GOOGLE_APPLICATION_CREDENTIALS=~/.config/gcloud/legacy_credentials/brace@brace.to/augurrank-001-bde1aaaabf2f.json node --import=specifier-resolution-node/register src/revise-totals.js",
     "deploy": "gcloud run jobs deploy augurrank-server-worker --source . --cpu=1 --memory=256Mi --tasks=1 --max-retries=0 --task-timeout=20m --region=us-central1 --project=augurrank-001"
   },
   "dependencies": {
