@@ -3,7 +3,7 @@ import dtsApi from './data-totals';
 import { randomString } from './utils';
 
 const reviseUserTotals = async (logKey) => {
-  const stxAddr = 'SP18EDVDZRXYWG6Z0CB4J3Q7R37164ACY6TBSVB9K';
+  const stxAddr = 'SP18E...SVB9K';
 
   const { preds } = await dataApi.queryPreds(stxAddr, null);
   console.log(`(${logKey}) got ${preds.length} preds`);
@@ -11,7 +11,7 @@ const reviseUserTotals = async (logKey) => {
   const totals = dtsApi.genUserTotals(preds);
   printTotals(totals);
 
-  await dataApi.updateTotals(totals);
+  //await dtsApi.updateTotals(totals);
 };
 
 const reviseGameTotals = async (logKey) => {
@@ -23,7 +23,7 @@ const reviseGameTotals = async (logKey) => {
   const totals = dtsApi.genGameTotals(preds);
   printTotals(totals);
 
-  await dataApi.updateTotals(totals);
+  //await dtsApi.updateTotals(totals);
 };
 
 const printTotals = (totals) => {
@@ -43,7 +43,9 @@ const printTotals = (totals) => {
     });
 
     for (const t of ttspg[g]) {
-      console.log(`${t.keyName}: ${t.outcome}`);
+      let txt = `${t.keyName}: ${t.outcome}`;
+      if ('anchor' in t) txt += ` (${t.anchor})`;
+      console.log(txt);
     }
   }
 };
@@ -53,8 +55,8 @@ const _main = async () => {
   const logKey = `${startDate.getTime()}-${randomString(4)}`;
   console.log(`(${logKey}) Worker(to-totals) starts on ${startDate.toISOString()}`);
 
-  //await reviseUserTotals(logKey);
-  await reviseGameTotals(logKey);
+  await reviseUserTotals(logKey);
+  //await reviseGameTotals(logKey);
 
   console.log(`(${logKey}) Worker finishes on ${(new Date()).toISOString()}.`);
 };
