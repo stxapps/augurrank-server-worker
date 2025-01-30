@@ -1,5 +1,5 @@
 import dataApi from './data';
-import dataTotalApi from './data-total';
+import dtsApi from './data-totals';
 import {
   GAME_BTC, GAME_BTC_LEAD_BURN_HEIGHT, PDG, SCS, ABT_BY_NF, ERR_NOT_FOUND,
 } from './const';
@@ -48,7 +48,7 @@ const _main = async () => {
     const udtRst = await dataApi.updatePred(newPred);
     console.log(`(${logKey}) ${pred.id} saved to Pred`);
 
-    await dataTotalApi.udtTotCfd(udtRst.oldPred, udtRst.newPred);
+    await dtsApi.udtTotCfd(udtRst.oldPred, udtRst.newPred);
     console.log(`(${logKey}) ${pred.id} saved to Total`);
   }
 

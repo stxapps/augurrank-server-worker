@@ -1,5 +1,5 @@
 import dataApi from './data';
-import dataTotalApi from './data-total';
+import dtsApi from './data-totals';
 import { PDG, SCS, ERR_NOT_FOUND } from './const';
 import {
   randomString, deriveTxInfo, getPredCorrect, getPredAnchorPrice, getPredTargetPrice,
@@ -45,7 +45,7 @@ const _main = async () => {
     const udtRst = await dataApi.updatePred(newPred);
     console.log(`(${logKey}) ${pred.id} saved to Pred`);
 
-    await dataTotalApi.udtTotVrd(udtRst.oldPred, udtRst.newPred);
+    await dtsApi.udtTotVrd(udtRst.oldPred, udtRst.newPred);
     console.log(`(${logKey}) ${pred.id} saved to Total`);
   }
 

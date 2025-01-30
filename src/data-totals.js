@@ -441,21 +441,24 @@ const genUserTotals = (preds) => {
     if (status === PRED_STATUS_CONFIRMED_OK) {
       [keyName, formula] = [keyNames[0], formulas[0]];
       if (isObject(totals[keyName])) {
-        totals[keyName].outcome += 1;
+        total = totals[keyName];
+        [total.outcome, total.updateDate] = [total.outcome + 1, now];
       } else {
         totals[keyName] = newTotal(keyName, stxAddr, game, formula, 1, now, now);
       }
 
       [keyName, formula] = [keyNames[3], formulas[3]];
       if (isObject(totals[keyName])) {
-        totals[keyName].outcome += 1;
+        total = totals[keyName];
+        [total.outcome, total.updateDate] = [total.outcome + 1, now];
       } else {
         totals[keyName] = newTotal(keyName, stxAddr, ALL, formula, 1, now, now);
       }
     } else if (status === PRED_STATUS_VERIFIED_OK) {
       [keyName, formula] = [keyNames[6], formulas[6]];
       if (isObject(totals[keyName])) {
-        totals[keyName].outcome += 1;
+        total = totals[keyName];
+        [total.outcome, total.updateDate] = [total.outcome + 1, now];
       } else {
         totals[keyName] = newTotal(keyName, stxAddr, game, formula, 1, now, now);
       }
@@ -464,6 +467,7 @@ const genUserTotals = (preds) => {
       if (isObject(totals[keyName])) {
         total = totals[keyName];
         total.outcome = predCorrect === 'TRUE' ? total.outcome + 1 : 0;
+        total.updateDate = now;
       } else {
         const outcome = predCorrect === 'TRUE' ? 1 : 0;
         total = newTotal(keyName, stxAddr, game, formula, outcome, now, now);
@@ -475,6 +479,7 @@ const genUserTotals = (preds) => {
       if (isObject(totals[keyName])) {
         total = totals[keyName];
         total.outcome = predCorrect === 'FALSE' ? total.outcome + 1 : 0;
+        total.updateDate = now;
       } else {
         const outcome = predCorrect === 'FALSE' ? 1 : 0;
         total = newTotal(keyName, stxAddr, game, formula, outcome, now, now);
@@ -486,6 +491,7 @@ const genUserTotals = (preds) => {
       if (isObject(totals[keyName])) {
         total = totals[keyName];
         total.outcome = predCorrect === 'N/A' ? total.outcome + 1 : 0;
+        total.updateDate = now;
       } else {
         const outcome = predCorrect === 'N/A' ? 1 : 0;
         total = newTotal(keyName, stxAddr, game, formula, outcome, now, now);
@@ -497,7 +503,7 @@ const genUserTotals = (preds) => {
       if (isObject(totals[keyName])) {
         total = totals[keyName];
         if (total.outcome < countCont) {
-          total.outcome = countCont;
+          [total.outcome, total.updateDate] = [countCont, now];
         }
       } else {
         totals[keyName] = newTotal(keyName, stxAddr, game, formula, countCont, now, now);
@@ -505,7 +511,8 @@ const genUserTotals = (preds) => {
 
       [keyName, formula] = [keyNames[11], formulas[11]];
       if (isObject(totals[keyName])) {
-        totals[keyName].outcome += 1;
+        total = totals[keyName];
+        [total.outcome, total.updateDate] = [total.outcome + 1, now];
       } else {
         totals[keyName] = newTotal(keyName, stxAddr, ALL, formula, 1, now, now);
       }
@@ -514,6 +521,7 @@ const genUserTotals = (preds) => {
       if (isObject(totals[keyName])) {
         total = totals[keyName];
         total.outcome = predCorrect === 'TRUE' ? total.outcome + 1 : 0;
+        total.updateDate = now;
       } else {
         const outcome = predCorrect === 'TRUE' ? 1 : 0;
         total = newTotal(keyName, stxAddr, ALL, formula, outcome, now, now);
@@ -525,6 +533,7 @@ const genUserTotals = (preds) => {
       if (isObject(totals[keyName])) {
         total = totals[keyName];
         total.outcome = predCorrect === 'FALSE' ? total.outcome + 1 : 0;
+        total.updateDate = now;
       } else {
         const outcome = predCorrect === 'FALSE' ? 1 : 0;
         total = newTotal(keyName, stxAddr, ALL, formula, outcome, now, now);
@@ -536,6 +545,7 @@ const genUserTotals = (preds) => {
       if (isObject(totals[keyName])) {
         total = totals[keyName];
         total.outcome = predCorrect === 'N/A' ? total.outcome + 1 : 0;
+        total.updateDate = now;
       } else {
         const outcome = predCorrect === 'N/A' ? 1 : 0;
         total = newTotal(keyName, stxAddr, ALL, formula, outcome, now, now);
@@ -547,7 +557,7 @@ const genUserTotals = (preds) => {
       if (isObject(totals[keyName])) {
         total = totals[keyName];
         if (total.outcome < countCont) {
-          total.outcome = countCont;
+          [total.outcome, total.updateDate] = [countCont, now];
         }
       } else {
         totals[keyName] = newTotal(keyName, stxAddr, ALL, formula, countCont, now, now);
@@ -565,6 +575,8 @@ const genUserTotals = (preds) => {
         } else {
           [total.outcome, total.anchor] = [1, createDate];
         }
+
+        total.updateDate = now;
       } else {
         total = newTotal(keyName, stxAddr, game, formula, 1, now, now, createDate);
         totals[keyName] = total;
@@ -575,7 +587,7 @@ const genUserTotals = (preds) => {
       if (isObject(totals[keyName])) {
         total = totals[keyName];
         if (total.outcome < countCont) {
-          total.outcome = countCont;
+          [total.outcome, total.updateDate] = [countCont, now];
         }
       } else {
         total = newTotal(keyName, stxAddr, game, formula, countCont, now, now);
@@ -590,6 +602,8 @@ const genUserTotals = (preds) => {
         } else {
           [total.outcome, total.anchor] = [1, createDate];
         }
+
+        total.updateDate = now;
       } else {
         total = newTotal(keyName, stxAddr, ALL, formula, 1, now, now, createDate);
         totals[keyName] = total;
@@ -600,7 +614,7 @@ const genUserTotals = (preds) => {
       if (isObject(totals[keyName])) {
         total = totals[keyName];
         if (total.outcome < countCont) {
-          total.outcome = countCont;
+          [total.outcome, total.updateDate] = [countCont, now];
         }
       } else {
         total = newTotal(keyName, stxAddr, ALL, formula, countCont, now, now);
@@ -635,18 +649,20 @@ const genGameTotals = (preds) => {
       status = PRED_STATUS_CONFIRMED_OK;
     }
 
-    let keyName, formula;
+    let keyName, formula, total;
     if (status === PRED_STATUS_CONFIRMED_OK) {
       [keyName, formula] = [keyNames[0], formulas[0]];
       if (isObject(totals[keyName])) {
-        totals[keyName].outcome += 1;
+        total = totals[keyName];
+        [total.outcome, total.updateDate] = [total.outcome + 1, now];
       } else {
         totals[keyName] = newTotal(keyName, ALL, game, formula, 1, now, now);
       }
     } else if (status === PRED_STATUS_VERIFIED_OK) {
       [keyName, formula] = [keyNames[1], formulas[1]];
       if (isObject(totals[keyName])) {
-        totals[keyName].outcome += 1;
+        total = totals[keyName];
+        [total.outcome, total.updateDate] = [total.outcome + 1, now];
       } else {
         totals[keyName] = newTotal(keyName, ALL, game, formula, 1, now, now);
       }
@@ -658,7 +674,8 @@ const genGameTotals = (preds) => {
       if (!goneAddrs.includes(stxAddr)) {
         [keyName, formula] = [keyNames[2], formulas[2]];
         if (isObject(totals[keyName])) {
-          totals[keyName].outcome += 1;
+          total = totals[keyName];
+          [total.outcome, total.updateDate] = [total.outcome + 1, now];
         } else {
           totals[keyName] = newTotal(keyName, ALL, game, formula, 1, now, now);
         }
@@ -671,8 +688,8 @@ const genGameTotals = (preds) => {
 };
 
 const updateTotals = async (totals) => {
-  const keyNames = totals.map(tt => tt.keyName);
-  const keys = keyNames.map(kn => datastore.key([TOTAL, kn]));
+  const keyNames = totals.map(t => t.keyName);
+  const keys = keyNames.map(k => datastore.key([TOTAL, k]));
 
   const transaction = datastore.transaction();
   try {
@@ -681,8 +698,31 @@ const updateTotals = async (totals) => {
     const [_entities] = await transaction.get(keys);
     const entities = mapEntities(keyNames, _entities);
 
-    // update createDate
+    const newEntities = [];
+    for (let i = 0; i < keyNames.length; i++) {
+      const [total, key, entity] = [totals[i], keys[i], entities[i]];
 
+      let newTotal;
+      if (isObject(entity)) {
+        newTotal = entityToTotal(entity);
+        if (
+          newTotal.keyName !== total.keyName ||
+          newTotal.stxAddr !== total.stxAddr ||
+          newTotal.game !== total.game ||
+          newTotal.formula !== total.formula ||
+          ('anchor' in newTotal && !('anchor' in total)) ||
+          (!('anchor' in newTotal) && 'anchor' in total)
+        ) {
+          throw new Error(`Invalid total: ${JSON.stringify(total)}`);
+        }
+        [newTotal.outcome, newTotal.updateDate] = [total.outcome, total.updateDate];
+        if ('anchor' in total && 'anchor' in newTotal) newTotal.anchor = total.anchor;
+      } else {
+        newTotal = total;
+      }
+
+      newEntities.push({ key, data: totalToEntityData(newTotal) });
+    }
 
     transaction.save(newEntities);
     await transaction.commit();
