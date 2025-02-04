@@ -17,6 +17,7 @@ const _main = async () => {
   console.log(`(${logKey}) got ${preds.length} verifiable preds`);
 
   let nonce = await fetchNonce({ address: CONTRACT_ADDR });
+  // should check missing nonces (docs.hiro.so/stacks/api/concepts/nonce-handling)
 
   for (const pred of preds) {
     const { stxAddr, contract, seq, targetBurnHeight } = pred;

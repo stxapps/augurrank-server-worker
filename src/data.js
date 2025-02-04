@@ -84,7 +84,7 @@ const getVerifiablePreds = async (burnHeight) => {
   ]));
   query.order('targetBurnHeight', { descending: false }); // inequality must be first
   query.order('createDate', { descending: false }); // for cont-day's anchor in Total
-  query.limit(40);
+  query.limit(25); // limit 25 in mempool (docs.hiro.so/stacks/api/txs#mempool)
 
   const [entities] = await datastore.runQuery(query);
 
@@ -154,7 +154,6 @@ const updatePred = async (pred) => {
 
     const [oldEntity] = await transaction.get(predKey);
     if (!isObject(oldEntity)) {
-      await transaction.rollback();
       throw new Error('Invalid oldEntity');
     }
     const oldPred = entityToPred(oldEntity);
@@ -165,9 +164,9 @@ const updatePred = async (pred) => {
     transaction.save(newEntity);
     await transaction.commit();
     return { oldPred, newPred };
-  } catch (e) {
+  } catch (error) {
     await transaction.rollback();
-    throw e;
+    throw error;
   }
 };
 
