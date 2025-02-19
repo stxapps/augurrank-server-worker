@@ -1,3 +1,4 @@
+export const USER = 'User';
 export const PRED = 'Pred';
 export const TOTAL = 'Total';
 

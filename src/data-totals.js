@@ -1,4 +1,4 @@
-import { Datastore } from '@google-cloud/datastore';
+import { Datastore, PropertyFilter } from '@google-cloud/datastore';
 
 import {
   TOTAL, PRED_STATUS_CONFIRMED_OK, PRED_STATUS_VERIFIABLE, PRED_STATUS_VERIFYING,
@@ -732,6 +732,25 @@ const updateTotals = async (totals) => {
   }
 };
 
+const getTotals = async (game) => {
+  const query = datastore.createQuery(TOTAL);
+  query.filter(new PropertyFilter('game', '=', game));
+
+  const [entities] = await datastore.runQuery(query);
+
+  const totals = [];
+  if (Array.isArray(entities)) {
+    for (const entity of entities) {
+      if (!isObject(entity)) continue;
+
+      const total = entityToTotal(entity);
+      totals.push(total);
+    }
+  }
+
+  return { totals };
+};
+
 const getAt = (keyNames, keys, entities, formulas, i) => {
   return [keyNames[i], keys[i], entities[i], formulas[i]];
 };
@@ -791,6 +810,8 @@ const mapEntities = (keyNames, _entities) => {
   return entities;
 };
 
-const data = { udtTotCfd, udtTotVrd, genUserTotals, genGameTotals, updateTotals };
+const data = {
+  udtTotCfd, udtTotVrd, genUserTotals, genGameTotals, updateTotals, getTotals,
+};
 
 export default data;

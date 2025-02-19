@@ -8,17 +8,19 @@
   "type": "module",
   "scripts": {
     "start": "node --import=specifier-resolution-node/register src/index.js",
-    "to-confirmed": "node --import=specifier-resolution-node/register src/to-confirmed.js",
-    "to-verifying": "node --import=specifier-resolution-node/register src/to-verifying.js",
-    "to-verified": "node --import=specifier-resolution-node/register src/to-verified.js",
-    "to-confirmed-local": "GOOGLE_APPLICATION_CREDENTIALS=~/.config/gcloud/legacy_credentials/brace@brace.to/augurrank-001-bde1aaaabf2f.json node --import=specifier-resolution-node/register src/to-confirmed.js",
-    "to-verifying-local": "GOOGLE_APPLICATION_CREDENTIALS=~/.config/gcloud/legacy_credentials/brace@brace.to/augurrank-001-bde1aaaabf2f.json node --import=specifier-resolution-node/register src/to-verifying.js",
-    "to-verified-local": "GOOGLE_APPLICATION_CREDENTIALS=~/.config/gcloud/legacy_credentials/brace@brace.to/augurrank-001-bde1aaaabf2f.json node --import=specifier-resolution-node/register src/to-verified.js",
-    "revise-totals-local": "GOOGLE_APPLICATION_CREDENTIALS=~/.config/gcloud/legacy_credentials/brace@brace.to/augurrank-001-bde1aaaabf2f.json node --import=specifier-resolution-node/register src/revise-totals.js",
-    "deploy": "gcloud run jobs deploy augurrank-server-worker --source . --cpu=1 --memory=256Mi --tasks=1 --max-retries=0 --task-timeout=20m --region=us-central1 --project=augurrank-001"
+    "to-confirmed": "GOOGLE_APPLICATION_CREDENTIALS=~/.config/gcloud/legacy_credentials/brace@brace.to/augurrank-001-bde1aaaabf2f.json node --import=specifier-resolution-node/register src/to-confirmed.js",
+    "to-verifying": "GOOGLE_APPLICATION_CREDENTIALS=~/.config/gcloud/legacy_credentials/brace@brace.to/augurrank-001-bde1aaaabf2f.json node --import=specifier-resolution-node/register src/to-verifying.js",
+    "to-verified": "GOOGLE_APPLICATION_CREDENTIALS=~/.config/gcloud/legacy_credentials/brace@brace.to/augurrank-001-bde1aaaabf2f.json node --import=specifier-resolution-node/register src/to-verified.js",
+    "to-ldb": "GOOGLE_APPLICATION_CREDENTIALS=~/.config/gcloud/legacy_credentials/brace@brace.to/augurrank-001-bde1aaaabf2f.json node --import=specifier-resolution-node/register src/to-ldb.js",
+    "revise-totals": "GOOGLE_APPLICATION_CREDENTIALS=~/.config/gcloud/legacy_credentials/brace@brace.to/augurrank-001-bde1aaaabf2f.json node --import=specifier-resolution-node/register src/revise-totals.js",
+    "verify-user": "GOOGLE_APPLICATION_CREDENTIALS=~/.config/gcloud/legacy_credentials/brace@brace.to/augurrank-001-bde1aaaabf2f.json node --import=specifier-resolution-node/register src/verify-user.js",
+    "deploy-to-confirmed": "gcloud run jobs deploy augurrank-server-worker-to-confirmed --source . --cpu=1 --memory=256Mi --tasks=1 --max-retries=0 --task-timeout=20m --set-env-vars=TO_NAME=TO_CONFIRMED --region=us-central1 --project=augurrank-001",
+    "deploy-to-verifying": "use the same image to create a job augurrank-server-worker-to-verifying with the corresponding env vars",
+    "deploy-to-verified": "use the same image to create a job augurrank-server-worker-to-verified with the corresponding env vars"
   },
   "dependencies": {
     "@google-cloud/datastore": "^9.2.1",
+    "@google-cloud/storage": "^7.15.1",
     "@stacks/transactions": "^7.0.2",
     "specifier-resolution-node": "^1.1.4"
   }
