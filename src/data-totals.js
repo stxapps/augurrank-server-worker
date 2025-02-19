@@ -1,4 +1,4 @@
-import { Datastore, PropertyFilter } from '@google-cloud/datastore';
+import { Datastore, PropertyFilter, and } from '@google-cloud/datastore';
 
 import {
   TOTAL, PRED_STATUS_CONFIRMED_OK, PRED_STATUS_VERIFIABLE, PRED_STATUS_VERIFYING,
@@ -732,9 +732,14 @@ const updateTotals = async (totals) => {
   }
 };
 
-const getTotals = async (game) => {
+const getLdbTotals = async (game) => {
   const query = datastore.createQuery(TOTAL);
-  query.filter(new PropertyFilter('game', '=', game));
+  query.filter(and([
+    new PropertyFilter('game', '=', game),
+    new PropertyFilter('formula', '=', 'verified_ok-TRUE-count'),
+  ]));
+  query.order('outcome', { descending: true });
+  query.limit(208); // ignore stxAddr='all' and noInLdb=true
 
   const [entities] = await datastore.runQuery(query);
 
@@ -745,6 +750,27 @@ const getTotals = async (game) => {
 
       const total = entityToTotal(entity);
       totals.push(total);
+    }
+  }
+
+  return { totals };
+};
+
+const getTotals = async (keyNames) => {
+  const keys = keyNames.map(kn => datastore.key([TOTAL, kn]));
+
+  const totals = [], nKeys = 256;
+  for (let i = 0; i < keys.length; i += nKeys) {
+    const sKeys = keys.slice(i, i + nKeys);
+    const [entities] = await datastore.get(sKeys);
+
+    if (Array.isArray(entities)) {
+      for (const entity of entities) {
+        if (!isObject(entity)) continue;
+
+        const total = entityToTotal(entity);
+        totals.push(total);
+      }
     }
   }
 
@@ -811,7 +837,8 @@ const mapEntities = (keyNames, _entities) => {
 };
 
 const data = {
-  udtTotCfd, udtTotVrd, genUserTotals, genGameTotals, updateTotals, getTotals,
+  udtTotCfd, udtTotVrd, genUserTotals, genGameTotals, updateTotals, getLdbTotals,
+  getTotals,
 };
 
 export default data;

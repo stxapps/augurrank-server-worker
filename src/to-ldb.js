@@ -32,64 +32,48 @@ storage-server-url/leaderboard/game/<ts>.json
 }
 */
 
-const FORMULAS = [
-  'up-verified_ok-TRUE-count',
-  'up-verified_ok-FALSE-count',
-  'up-verified_ok-N/A-count',
-  'down-verified_ok-TRUE-count',
-  'down-verified_ok-FALSE-count',
-  'down-verified_ok-N/A-count',
-  'verified_ok-TRUE-count-cont',
-  'verified_ok-FALSE-count-cont',
-  'verified_ok-N/A-count-cont',
-  'verified_ok-TRUE-max-cont',
-  'verified_ok-FALSE-max-cont',
-  'verified_ok-N/A-max-cont',
-];
+const getLdbData = async (game, now) => {
+  const { totals: ldbTotals } = await dtsApi.getLdbTotals(game);
 
-const getLdbData = async (now) => {
-  const { totals } = await dtsApi.getTotals(GAME_BTC);
+  const stxAddrs = ldbTotals.filter(t => t.stxAddr !== 'all')
+    .sort((a, b) => b.outcome - a.outcome)
+    .map(t => t.stxAddr);
 
-  const bin = {}, sums = [];
+  const { users } = await dlbApi.getUsers(stxAddrs);
+  const ldbUsers = users.filter(user => user.noInLbd !== true).slice(0, 200);
+  // if ldbUsers < 200, try again with higher limit in getLdbTotals
+
+  const tkns = [];
+  for (const user of ldbUsers) {
+    const { stxAddr } = user;
+    const kns = [
+      `${stxAddr}-${game}-up-verified_ok-TRUE-count`,
+      `${stxAddr}-${game}-up-verified_ok-FALSE-count`,
+      `${stxAddr}-${game}-up-verified_ok-N/A-count`,
+      `${stxAddr}-${game}-down-verified_ok-TRUE-count`,
+      `${stxAddr}-${game}-down-verified_ok-FALSE-count`,
+      `${stxAddr}-${game}-down-verified_ok-N/A-count`,
+      `${stxAddr}-${game}-verified_ok-TRUE-count-cont`,
+      `${stxAddr}-${game}-verified_ok-FALSE-count-cont`,
+      `${stxAddr}-${game}-verified_ok-N/A-count-cont`,
+      `${stxAddr}-${game}-verified_ok-TRUE-max-cont`,
+      `${stxAddr}-${game}-verified_ok-FALSE-max-cont`,
+      `${stxAddr}-${game}-verified_ok-N/A-max-cont`,
+    ];
+    tkns.push(...kns);
+  }
+
+  const { totals } = await dtsApi.getTotals(tkns);
+
+  const bin = {};
   for (const total of totals) {
     const { stxAddr, formula } = total;
-    if (stxAddr === 'all' || !FORMULAS.includes(formula)) continue;
-
     if (!isObject(bin[stxAddr])) bin[stxAddr] = {};
     bin[stxAddr][formula] = total;
   }
-  for (const stxAddr in bin) {
-    let sum = 0;
-    if (isObject(bin[stxAddr]['up-verified_ok-TRUE-count'])) {
-      sum += bin[stxAddr]['up-verified_ok-TRUE-count'].outcome;
-    }
-    if (isObject(bin[stxAddr]['down-verified_ok-TRUE-count'])) {
-      sum += bin[stxAddr]['down-verified_ok-TRUE-count'].outcome;
-    }
-    sums.push({ stxAddr, sum });
-  }
-  sums.sort((a, b) => b.sum - a.sum);
-
-  // Only 200 users who have highest outcome and allow in the leaderboard
-  const N_USERS = 200, N_SPARE = 8;
-  const stxAddrs = sums.slice(0, N_USERS + N_SPARE).map(sum => sum.stxAddr);
-  const { users } = await dlbApi.getUsers(stxAddrs);
-  const ldbUsers = users.filter(user => user.noInLbd !== true);
-
-  if (ldbUsers.length < 200) {
-    const nUsers = Math.ceil((N_USERS - ldbUsers.length) * 1.5);
-    for (let i = N_USERS + N_SPARE; i < sums.length; i += nUsers) {
-      const stxAddrs = sums.slice(i, i + nUsers).map(sum => sum.stxAddr);
-      const { users } = await dlbApi.getUsers(stxAddrs);
-      const moreUsers = users.filter(user => user.noInLbd !== true);
-      ldbUsers.push(...moreUsers);
-
-      if (ldbUsers.length >= 200) break;
-    }
-  }
 
   const data = { totals: {}, users: {}, createDate: now, updateDate: now };
-  for (const user of ldbUsers.slice(0, N_USERS)) {
+  for (const user of ldbUsers) {
     const { stxAddr, username, avatar } = user;
     data.users[stxAddr] = { username, avatar };
     data.totals[stxAddr] = bin[stxAddr];
@@ -120,7 +104,7 @@ export const toLdb = async () => {
     }
   }
 
-  const ldbData = await getLdbData(now);
+  const ldbData = await getLdbData(GAME_BTC, now);
   console.log(`(${logKey}) fetched ldb data`);
 
   nContent.data[ldbData.createDate] = ldbData;
