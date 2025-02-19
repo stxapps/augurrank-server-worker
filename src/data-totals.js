@@ -184,32 +184,38 @@ const _udtTotVrd = async (oldPred, newPred) => {
     `${stxAddr}-${predValue}-confirmed_ok-count`,
     `${game}-${predValue}-confirmed_ok-count`,
     `${stxAddr}-${game}-${predValue}-verified_ok-${predCorrect}-count`,
+    `${stxAddr}-${game}-verified_ok-${predCorrect}-count`,
     `${stxAddr}-${game}-verified_ok-TRUE-count-cont`,
     `${stxAddr}-${game}-verified_ok-FALSE-count-cont`,
     `${stxAddr}-${game}-verified_ok-N/A-count-cont`,
     `${stxAddr}-${game}-verified_ok-${predCorrect}-max-cont`,
     `${stxAddr}-${predValue}-verified_ok-${predCorrect}-count`,
+    `${stxAddr}-verified_ok-${predCorrect}-count`,
     `${stxAddr}-verified_ok-TRUE-count-cont`,
     `${stxAddr}-verified_ok-FALSE-count-cont`,
     `${stxAddr}-verified_ok-N/A-count-cont`,
     `${stxAddr}-verified_ok-${predCorrect}-max-cont`,
-    `${game}-${predValue}-verified_ok-${predCorrect}-count`
+    `${game}-${predValue}-verified_ok-${predCorrect}-count`,
+    `${game}-verified_ok-${predCorrect}-count`,
   ];
   const formulas = [
     `${predValue}-confirmed_ok-count`,
     `${predValue}-confirmed_ok-count`,
     `${predValue}-confirmed_ok-count`,
     `${predValue}-verified_ok-${predCorrect}-count`,
+    `verified_ok-${predCorrect}-count`,
     `verified_ok-TRUE-count-cont`,
     `verified_ok-FALSE-count-cont`,
     `verified_ok-N/A-count-cont`,
     `verified_ok-${predCorrect}-max-cont`,
     `${predValue}-verified_ok-${predCorrect}-count`,
+    `verified_ok-${predCorrect}-count`,
     `verified_ok-TRUE-count-cont`,
     `verified_ok-FALSE-count-cont`,
     `verified_ok-N/A-count-cont`,
     `verified_ok-${predCorrect}-max-cont`,
-    `${predValue}-verified_ok-${predCorrect}-count`
+    `${predValue}-verified_ok-${predCorrect}-count`,
+    `verified_ok-${predCorrect}-count`,
   ];
   const keys = keyNames.map(kn => datastore.key([TOTAL, kn]));
 
@@ -256,6 +262,15 @@ const _udtTotVrd = async (oldPred, newPred) => {
     [keyName, key, entity, formula] = getAt(keyNames, keys, entities, formulas, 4);
     if (isObject(entity)) {
       total = entityToTotal(entity);
+      [total.outcome, total.updateDate] = [total.outcome + 1, now];
+    } else {
+      total = newTotal(keyName, stxAddr, game, formula, 1, now, now);
+    }
+    newEntities.push({ key, data: totalToEntityData(total) });
+
+    [keyName, key, entity, formula] = getAt(keyNames, keys, entities, formulas, 5);
+    if (isObject(entity)) {
+      total = entityToTotal(entity);
       total.outcome = predCorrect === 'TRUE' ? total.outcome + 1 : 0;
       total.updateDate = now;
     } else {
@@ -265,7 +280,7 @@ const _udtTotVrd = async (oldPred, newPred) => {
     newEntities.push({ key, data: totalToEntityData(total) });
     if (predCorrect === 'TRUE') countCont = total.outcome;
 
-    [keyName, key, entity, formula] = getAt(keyNames, keys, entities, formulas, 5);
+    [keyName, key, entity, formula] = getAt(keyNames, keys, entities, formulas, 6);
     if (isObject(entity)) {
       total = entityToTotal(entity);
       total.outcome = predCorrect === 'FALSE' ? total.outcome + 1 : 0;
@@ -277,7 +292,7 @@ const _udtTotVrd = async (oldPred, newPred) => {
     newEntities.push({ key, data: totalToEntityData(total) });
     if (predCorrect === 'FALSE') countCont = total.outcome;
 
-    [keyName, key, entity, formula] = getAt(keyNames, keys, entities, formulas, 6);
+    [keyName, key, entity, formula] = getAt(keyNames, keys, entities, formulas, 7);
     if (isObject(entity)) {
       total = entityToTotal(entity);
       total.outcome = predCorrect === 'N/A' ? total.outcome + 1 : 0;
@@ -289,7 +304,7 @@ const _udtTotVrd = async (oldPred, newPred) => {
     newEntities.push({ key, data: totalToEntityData(total) });
     if (predCorrect === 'N/A') countCont = total.outcome;
 
-    [keyName, key, entity, formula] = getAt(keyNames, keys, entities, formulas, 7);
+    [keyName, key, entity, formula] = getAt(keyNames, keys, entities, formulas, 8);
     if (isObject(entity)) {
       total = entityToTotal(entity);
       if (total.outcome < countCont) {
@@ -301,7 +316,7 @@ const _udtTotVrd = async (oldPred, newPred) => {
       newEntities.push({ key, data: totalToEntityData(total) });
     }
 
-    [keyName, key, entity, formula] = getAt(keyNames, keys, entities, formulas, 8);
+    [keyName, key, entity, formula] = getAt(keyNames, keys, entities, formulas, 9);
     if (isObject(entity)) {
       total = entityToTotal(entity);
       [total.outcome, total.updateDate] = [total.outcome + 1, now];
@@ -310,7 +325,16 @@ const _udtTotVrd = async (oldPred, newPred) => {
     }
     newEntities.push({ key, data: totalToEntityData(total) });
 
-    [keyName, key, entity, formula] = getAt(keyNames, keys, entities, formulas, 9);
+    [keyName, key, entity, formula] = getAt(keyNames, keys, entities, formulas, 10);
+    if (isObject(entity)) {
+      total = entityToTotal(entity);
+      [total.outcome, total.updateDate] = [total.outcome + 1, now];
+    } else {
+      total = newTotal(keyName, stxAddr, ALL, formula, 1, now, now);
+    }
+    newEntities.push({ key, data: totalToEntityData(total) });
+
+    [keyName, key, entity, formula] = getAt(keyNames, keys, entities, formulas, 11);
     if (isObject(entity)) {
       total = entityToTotal(entity);
       total.outcome = predCorrect === 'TRUE' ? total.outcome + 1 : 0;
@@ -322,7 +346,7 @@ const _udtTotVrd = async (oldPred, newPred) => {
     newEntities.push({ key, data: totalToEntityData(total) });
     if (predCorrect === 'TRUE') countCont = total.outcome;
 
-    [keyName, key, entity, formula] = getAt(keyNames, keys, entities, formulas, 10);
+    [keyName, key, entity, formula] = getAt(keyNames, keys, entities, formulas, 12);
     if (isObject(entity)) {
       total = entityToTotal(entity);
       total.outcome = predCorrect === 'FALSE' ? total.outcome + 1 : 0;
@@ -334,7 +358,7 @@ const _udtTotVrd = async (oldPred, newPred) => {
     newEntities.push({ key, data: totalToEntityData(total) });
     if (predCorrect === 'FALSE') countCont = total.outcome;
 
-    [keyName, key, entity, formula] = getAt(keyNames, keys, entities, formulas, 11);
+    [keyName, key, entity, formula] = getAt(keyNames, keys, entities, formulas, 13);
     if (isObject(entity)) {
       total = entityToTotal(entity);
       total.outcome = predCorrect === 'N/A' ? total.outcome + 1 : 0;
@@ -346,7 +370,7 @@ const _udtTotVrd = async (oldPred, newPred) => {
     newEntities.push({ key, data: totalToEntityData(total) });
     if (predCorrect === 'N/A') countCont = total.outcome;
 
-    [keyName, key, entity, formula] = getAt(keyNames, keys, entities, formulas, 12);
+    [keyName, key, entity, formula] = getAt(keyNames, keys, entities, formulas, 14);
     if (isObject(entity)) {
       total = entityToTotal(entity);
       if (total.outcome < countCont) {
@@ -358,7 +382,16 @@ const _udtTotVrd = async (oldPred, newPred) => {
       newEntities.push({ key, data: totalToEntityData(total) });
     }
 
-    [keyName, key, entity, formula] = getAt(keyNames, keys, entities, formulas, 13);
+    [keyName, key, entity, formula] = getAt(keyNames, keys, entities, formulas, 15);
+    if (isObject(entity)) {
+      total = entityToTotal(entity);
+      [total.outcome, total.updateDate] = [total.outcome + 1, now];
+    } else {
+      total = newTotal(keyName, ALL, game, formula, 1, now, now);
+    }
+    newEntities.push({ key, data: totalToEntityData(total) });
+
+    [keyName, key, entity, formula] = getAt(keyNames, keys, entities, formulas, 16);
     if (isObject(entity)) {
       total = entityToTotal(entity);
       [total.outcome, total.updateDate] = [total.outcome + 1, now];
@@ -403,11 +436,13 @@ const genUserTotals = (preds) => {
       `${stxAddr}-confirmed_ok-count-cont-day`,
       `${stxAddr}-confirmed_ok-max-cont-day`,
       `${stxAddr}-${game}-${predValue}-verified_ok-${predCorrect}-count`,
+      `${stxAddr}-${game}-verified_ok-${predCorrect}-count`,
       `${stxAddr}-${game}-verified_ok-TRUE-count-cont`,
       `${stxAddr}-${game}-verified_ok-FALSE-count-cont`,
       `${stxAddr}-${game}-verified_ok-N/A-count-cont`,
       `${stxAddr}-${game}-verified_ok-${predCorrect}-max-cont`,
       `${stxAddr}-${predValue}-verified_ok-${predCorrect}-count`,
+      `${stxAddr}-verified_ok-${predCorrect}-count`,
       `${stxAddr}-verified_ok-TRUE-count-cont`,
       `${stxAddr}-verified_ok-FALSE-count-cont`,
       `${stxAddr}-verified_ok-N/A-count-cont`,
@@ -421,11 +456,13 @@ const genUserTotals = (preds) => {
       'confirmed_ok-count-cont-day',
       'confirmed_ok-max-cont-day',
       `${predValue}-verified_ok-${predCorrect}-count`,
+      `verified_ok-${predCorrect}-count`,
       `verified_ok-TRUE-count-cont`,
       `verified_ok-FALSE-count-cont`,
       `verified_ok-N/A-count-cont`,
       `verified_ok-${predCorrect}-max-cont`,
       `${predValue}-verified_ok-${predCorrect}-count`,
+      `verified_ok-${predCorrect}-count`,
       `verified_ok-TRUE-count-cont`,
       `verified_ok-FALSE-count-cont`,
       `verified_ok-N/A-count-cont`,
@@ -466,6 +503,14 @@ const genUserTotals = (preds) => {
       [keyName, formula] = [keyNames[7], formulas[7]];
       if (isObject(totals[keyName])) {
         total = totals[keyName];
+        [total.outcome, total.updateDate] = [total.outcome + 1, now];
+      } else {
+        totals[keyName] = newTotal(keyName, stxAddr, game, formula, 1, now, now);
+      }
+
+      [keyName, formula] = [keyNames[8], formulas[8]];
+      if (isObject(totals[keyName])) {
+        total = totals[keyName];
         total.outcome = predCorrect === 'TRUE' ? total.outcome + 1 : 0;
         total.updateDate = now;
       } else {
@@ -475,7 +520,7 @@ const genUserTotals = (preds) => {
       }
       if (predCorrect === 'TRUE') countCont = total.outcome;
 
-      [keyName, formula] = [keyNames[8], formulas[8]];
+      [keyName, formula] = [keyNames[9], formulas[9]];
       if (isObject(totals[keyName])) {
         total = totals[keyName];
         total.outcome = predCorrect === 'FALSE' ? total.outcome + 1 : 0;
@@ -487,7 +532,7 @@ const genUserTotals = (preds) => {
       }
       if (predCorrect === 'FALSE') countCont = total.outcome;
 
-      [keyName, formula] = [keyNames[9], formulas[9]];
+      [keyName, formula] = [keyNames[10], formulas[10]];
       if (isObject(totals[keyName])) {
         total = totals[keyName];
         total.outcome = predCorrect === 'N/A' ? total.outcome + 1 : 0;
@@ -499,7 +544,7 @@ const genUserTotals = (preds) => {
       }
       if (predCorrect === 'N/A') countCont = total.outcome;
 
-      [keyName, formula] = [keyNames[10], formulas[10]];
+      [keyName, formula] = [keyNames[11], formulas[11]];
       if (isObject(totals[keyName])) {
         total = totals[keyName];
         if (total.outcome < countCont) {
@@ -509,7 +554,7 @@ const genUserTotals = (preds) => {
         totals[keyName] = newTotal(keyName, stxAddr, game, formula, countCont, now, now);
       }
 
-      [keyName, formula] = [keyNames[11], formulas[11]];
+      [keyName, formula] = [keyNames[12], formulas[12]];
       if (isObject(totals[keyName])) {
         total = totals[keyName];
         [total.outcome, total.updateDate] = [total.outcome + 1, now];
@@ -517,7 +562,15 @@ const genUserTotals = (preds) => {
         totals[keyName] = newTotal(keyName, stxAddr, ALL, formula, 1, now, now);
       }
 
-      [keyName, formula] = [keyNames[12], formulas[12]];
+      [keyName, formula] = [keyNames[13], formulas[13]];
+      if (isObject(totals[keyName])) {
+        total = totals[keyName];
+        [total.outcome, total.updateDate] = [total.outcome + 1, now];
+      } else {
+        totals[keyName] = newTotal(keyName, stxAddr, ALL, formula, 1, now, now);
+      }
+
+      [keyName, formula] = [keyNames[14], formulas[14]];
       if (isObject(totals[keyName])) {
         total = totals[keyName];
         total.outcome = predCorrect === 'TRUE' ? total.outcome + 1 : 0;
@@ -529,7 +582,7 @@ const genUserTotals = (preds) => {
       }
       if (predCorrect === 'TRUE') countCont = total.outcome;
 
-      [keyName, formula] = [keyNames[13], formulas[13]];
+      [keyName, formula] = [keyNames[15], formulas[15]];
       if (isObject(totals[keyName])) {
         total = totals[keyName];
         total.outcome = predCorrect === 'FALSE' ? total.outcome + 1 : 0;
@@ -541,7 +594,7 @@ const genUserTotals = (preds) => {
       }
       if (predCorrect === 'FALSE') countCont = total.outcome;
 
-      [keyName, formula] = [keyNames[14], formulas[14]];
+      [keyName, formula] = [keyNames[16], formulas[16]];
       if (isObject(totals[keyName])) {
         total = totals[keyName];
         total.outcome = predCorrect === 'N/A' ? total.outcome + 1 : 0;
@@ -553,7 +606,7 @@ const genUserTotals = (preds) => {
       }
       if (predCorrect === 'N/A') countCont = total.outcome;
 
-      [keyName, formula] = [keyNames[15], formulas[15]];
+      [keyName, formula] = [keyNames[17], formulas[17]];
       if (isObject(totals[keyName])) {
         total = totals[keyName];
         if (total.outcome < countCont) {
@@ -636,11 +689,13 @@ const genGameTotals = (preds) => {
     const keyNames = [
       `${game}-${predValue}-confirmed_ok-count`,
       `${game}-${predValue}-verified_ok-${predCorrect}-count`,
+      `${game}-verified_ok-${predCorrect}-count`,
       `${game}-count-stxAddr`,
     ];
     const formulas = [
       `${predValue}-confirmed_ok-count`,
       `${predValue}-verified_ok-${predCorrect}-count`,
+      `verified_ok-${predCorrect}-count`,
       'count-stxAddr',
     ];
 
@@ -666,13 +721,21 @@ const genGameTotals = (preds) => {
       } else {
         totals[keyName] = newTotal(keyName, ALL, game, formula, 1, now, now);
       }
+
+      [keyName, formula] = [keyNames[2], formulas[2]];
+      if (isObject(totals[keyName])) {
+        total = totals[keyName];
+        [total.outcome, total.updateDate] = [total.outcome + 1, now];
+      } else {
+        totals[keyName] = newTotal(keyName, ALL, game, formula, 1, now, now);
+      }
     }
 
     if ([
       PRED_STATUS_CONFIRMED_OK, PRED_STATUS_VERIFIED_OK, PRED_STATUS_VERIFIED_ERROR,
     ].includes(status)) {
       if (!goneAddrs.includes(stxAddr)) {
-        [keyName, formula] = [keyNames[2], formulas[2]];
+        [keyName, formula] = [keyNames[3], formulas[3]];
         if (isObject(totals[keyName])) {
           total = totals[keyName];
           [total.outcome, total.updateDate] = [total.outcome + 1, now];
