@@ -859,7 +859,7 @@ const totalToEntityData = (total) => {
     { name: 'stxAddr', value: total.stxAddr },
     { name: 'game', value: total.game },
     { name: 'formula', value: total.formula },
-    { name: 'outcome', value: total.outcome, excludeFromIndexes: true },
+    { name: 'outcome', value: total.outcome },
     { name: 'createDate', value: new Date(total.createDate) },
     { name: 'updateDate', value: new Date(total.updateDate) },
   ];
