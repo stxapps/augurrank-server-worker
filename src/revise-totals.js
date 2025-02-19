@@ -11,7 +11,7 @@ const reviseUserTotals = async (logKey) => {
   const totals = dtsApi.genUserTotals(preds);
   printTotals(totals);
 
-  //await dtsApi.updateTotals(totals);
+  //await dtsApi.updateTotals(Object.values(totals));
 };
 
 const reviseGameTotals = async (logKey) => {
@@ -23,7 +23,7 @@ const reviseGameTotals = async (logKey) => {
   const totals = dtsApi.genGameTotals(preds);
   printTotals(totals);
 
-  //await dtsApi.updateTotals(totals);
+  //await dtsApi.updateTotals(Object.values(totals));
 };
 
 const printTotals = (totals) => {
