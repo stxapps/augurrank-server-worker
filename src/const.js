@@ -27,3 +27,5 @@ export const ABT_BY_NF = 'abort_by_not_found';
 export const ALL = 'all';
 
 export const ERR_NOT_FOUND = 'ERR_NOT_FOUND';
+
+export const N_LDB_USRS = 100;

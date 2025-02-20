@@ -1,6 +1,6 @@
 import dtsApi from './data-totals';
 import dlbApi from './data-ldb';
-import { GAME_BTC } from './const';
+import { GAME_BTC, N_LDB_USRS } from './const';
 import { randomString, isObject } from './utils';
 
 /*
@@ -33,15 +33,16 @@ storage-server-url/leaderboard/game/<ts>.json
 */
 
 const getLdbData = async (game, now) => {
-  const { totals: ldbTotals } = await dtsApi.getLdbTotals(game);
+  const { totals: ldbTotals } = await dtsApi.getLdbTotals(game, N_LDB_USRS);
 
   const stxAddrs = ldbTotals.filter(t => t.stxAddr !== 'all')
     .sort((a, b) => b.outcome - a.outcome)
     .map(t => t.stxAddr);
 
   const { users } = await dlbApi.getUsers(stxAddrs);
-  const ldbUsers = users.filter(user => user.noInLbd !== true).slice(0, 200);
-  // if ldbUsers < 200, try again with higher limit in getLdbTotals
+  const ldbUsers = users.filter(user => user.noInLbd !== true).slice(0, N_LDB_USRS);
+  // if players more than but ldbUsers less than N_LDB_USRS,
+  //   try again with higher spare in getLdbTotals.
 
   const tkns = [];
   for (const user of ldbUsers) {

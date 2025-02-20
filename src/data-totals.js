@@ -795,14 +795,78 @@ const updateTotals = async (totals) => {
   }
 };
 
-const getLdbTotals = async (game) => {
+const getLdbDummyTotals = async (totals, game, limit, spare = 8) => {
+  const stxAddrs = totals.map(total => total.stxAddr);
+  const now = Date.now();
+
+  const query = datastore.createQuery(TOTAL);
+  query.filter(and([
+    new PropertyFilter('game', '=', game),
+    new PropertyFilter('formula', '=', 'verified_ok-FALSE-count'),
+  ]));
+  query.order('outcome', { descending: true });
+  query.limit(limit + spare);
+
+  const [entities] = await datastore.runQuery(query);
+
+  const dTotals = [], dStxAddrs = [];
+  if (Array.isArray(entities)) {
+    for (const entity of entities) {
+      if (!isObject(entity)) continue;
+
+      const total = entityToTotal(entity);
+
+      const stxAddr = total.stxAddr;
+      if (stxAddrs.includes(stxAddr)) continue;
+
+      const keyName = `${stxAddr}-${game}-verified_ok-TRUE-count`;
+      const formula = 'verified_ok-TRUE-count';
+      const dTotal = newTotal(keyName, stxAddr, game, formula, 0, now, now)
+      dTotals.push(dTotal);
+      dStxAddrs.push(stxAddr);
+    }
+
+    if (dTotals.length < limit) {
+      const query = datastore.createQuery(TOTAL);
+      query.filter(and([
+        new PropertyFilter('game', '=', game),
+        new PropertyFilter('formula', '=', 'verified_ok-N/A-count'),
+      ]));
+      query.order('outcome', { descending: true });
+      query.limit(limit + spare - dTotals.length);
+
+      const [entities] = await datastore.runQuery(query);
+
+      if (Array.isArray(entities)) {
+        for (const entity of entities) {
+          if (!isObject(entity)) continue;
+
+          const total = entityToTotal(entity);
+
+          const stxAddr = total.stxAddr;
+          if (stxAddrs.includes(stxAddr) || dStxAddrs.includes(stxAddr)) continue;
+
+          const keyName = `${stxAddr}-${game}-verified_ok-TRUE-count`;
+          const formula = 'verified_ok-TRUE-count';
+          const dTotal = newTotal(keyName, stxAddr, game, formula, 0, now, now);
+          dTotals.push(dTotal);
+          dStxAddrs.push(stxAddr);
+        }
+      }
+    }
+  }
+
+  return dTotals;
+};
+
+const getLdbTotals = async (game, limit, spare = 8) => {
   const query = datastore.createQuery(TOTAL);
   query.filter(and([
     new PropertyFilter('game', '=', game),
     new PropertyFilter('formula', '=', 'verified_ok-TRUE-count'),
   ]));
   query.order('outcome', { descending: true });
-  query.limit(208); // ignore stxAddr='all' and noInLdb=true
+  query.limit(limit + spare); // ignore stxAddr='all' and noInLdb=true
 
   const [entities] = await datastore.runQuery(query);
 
@@ -813,6 +877,11 @@ const getLdbTotals = async (game) => {
 
       const total = entityToTotal(entity);
       totals.push(total);
+    }
+
+    if (totals.length < limit) {
+      const dTotals = await getLdbDummyTotals(totals, game, limit - totals.length);
+      totals.push(...dTotals);
     }
   }
 
