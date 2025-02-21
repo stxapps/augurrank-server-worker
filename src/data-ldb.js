@@ -61,6 +61,7 @@ const entityToUser = (entity) => {
   }
   if (isNotNullIn(entity, 'bio')) user.bio = entity.bio;
   if (isNotNullIn(entity, 'didAgreeTerms')) user.didAgreeTerms = entity.didAgreeTerms;
+  if (isNotNullIn(entity, 'noInLdb')) user.noInLdb = entity.noInLdb;
 
   return user;
 };

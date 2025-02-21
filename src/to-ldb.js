@@ -40,7 +40,7 @@ const getLdbData = async (game, now) => {
     .map(t => t.stxAddr);
 
   const { users } = await dlbApi.getUsers(stxAddrs);
-  const ldbUsers = users.filter(user => user.noInLbd !== true).slice(0, N_LDB_USRS);
+  const ldbUsers = users.filter(user => user.noInLdb !== true).slice(0, N_LDB_USRS);
   // if players more than but ldbUsers less than N_LDB_USRS,
   //   try again with higher spare in getLdbTotals.
 
