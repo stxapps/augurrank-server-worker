@@ -88,6 +88,9 @@ export const toLdb = async () => {
   const logKey = `${startDate.getTime()}-${randomString(4)}`;
   console.log(`(${logKey}) Worker(to-ldb) starts on ${startDate.toISOString()}`);
 
+  // Have LdbLog containing last processed updateDate and lastKeys.
+  // Query those new preds to get games needed to regenerate leaderboards.
+
   const now = startDate.getTime();
   const iPath = `leaderboard/${GAME_BTC}/index.json`;
   const tPath = `leaderboard/${GAME_BTC}/${now}.json`;

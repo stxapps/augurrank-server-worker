@@ -4,7 +4,9 @@ import {
   TOTAL, PRED_STATUS_CONFIRMED_OK, PRED_STATUS_VERIFIABLE, PRED_STATUS_VERIFYING,
   PRED_STATUS_VERIFIED_OK, PRED_STATUS_VERIFIED_ERROR, ALL,
 } from './const';
-import { sleep, isObject, sample, getPredStatus, isNotNullIn } from './utils';
+import {
+  sleep, isObject, isNumber, sample, getPredStatus, isNotNullIn,
+} from './utils';
 
 const datastore = new Datastore();
 
@@ -909,6 +911,32 @@ const getTotals = async (keyNames) => {
   return { totals };
 };
 
+const getStats = async (stxAddr) => {
+  const keyNames = [];
+  keyNames.push(`${stxAddr}-up-verified_ok-TRUE-count`); // wins
+  keyNames.push(`${stxAddr}-up-verified_ok-FALSE-count`); // losses
+  keyNames.push(`${stxAddr}-down-verified_ok-TRUE-count`); // wins
+  keyNames.push(`${stxAddr}-down-verified_ok-FALSE-count`); // losses
+  keyNames.push(`${stxAddr}-up-confirmed_ok-count`); // up pending
+  keyNames.push(`${stxAddr}-down-confirmed_ok-count`); // down pending
+  keyNames.push(`${stxAddr}-confirmed_ok-count-cont-day`); // continue days so far
+  keyNames.push(`${stxAddr}-verified_ok-TRUE-count-cont`); // cont. wins so far
+  keyNames.push(`${stxAddr}-verified_ok-FALSE-count-cont`); // cont. losses so far
+  keyNames.push(`${stxAddr}-confirmed_ok-max-cont-day`); // max cont. days
+  keyNames.push(`${stxAddr}-verified_ok-TRUE-max-cont`); // max cont. wins
+  keyNames.push(`${stxAddr}-verified_ok-FALSE-max-cont`); // max cont. losses
+
+  const { totals } = await getTotals(keyNames);
+
+  const stats = {};
+  for (const total of totals) {
+    if (!isNumber(total.outcome)) continue;
+    stats[total.keyName] = total.outcome;
+  }
+
+  return stats;
+};
+
 const getAt = (keyNames, keys, entities, formulas, i) => {
   return [keyNames[i], keys[i], entities[i], formulas[i]];
 };
@@ -970,7 +998,7 @@ const mapEntities = (keyNames, _entities) => {
 
 const data = {
   udtTotCfd, udtTotVrd, genUserTotals, genGameTotals, updateTotals, getLdbTotals,
-  getTotals,
+  getTotals, getStats,
 };
 
 export default data;

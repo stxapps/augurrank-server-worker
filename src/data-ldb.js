@@ -1,4 +1,4 @@
-import { Datastore } from '@google-cloud/datastore';
+import { Datastore, PropertyFilter } from '@google-cloud/datastore';
 import { Storage } from '@google-cloud/storage';
 
 import { USER } from './const';
@@ -10,6 +10,27 @@ const storage = new Storage();
 const getUsers = async (stxAddrs) => {
   const keys = stxAddrs.map(stxAddr => datastore.key([USER, stxAddr]));
   const [entities] = await datastore.get(keys);
+
+  const users = [];
+  if (Array.isArray(entities)) {
+    for (const entity of entities) {
+      if (!isObject(entity)) continue;
+
+      const user = entityToUser(entity);
+      users.push(user);
+    }
+  }
+
+  return { users };
+};
+
+const getUpdatedUsers = async (updateDate) => {
+  const query = datastore.createQuery(USER);
+  query.filter(new PropertyFilter('updateDate', '>=', new Date(updateDate)));
+  query.order('updateDate', { descending: false });
+  query.limit(100);
+
+  const [entities] = await datastore.runQuery(query);
 
   const users = [];
   if (Array.isArray(entities)) {
@@ -66,6 +87,6 @@ const entityToUser = (entity) => {
   return user;
 };
 
-const data = { getUsers, fetchStorage, updateStorage };
+const data = { getUsers, getUpdatedUsers, fetchStorage, updateStorage };
 
 export default data;

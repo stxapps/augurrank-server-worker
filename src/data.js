@@ -122,6 +122,30 @@ const getVerifyingPreds = async () => {
   return { preds };
 };
 
+const getVerifiedPreds = async (updateDate) => {
+  const query = datastore.createQuery(PRED);
+  query.filter(and([
+    new PropertyFilter('vStatus', '=', SCS),
+    new PropertyFilter('updateDate', '>=', new Date(updateDate)),
+  ]));
+  query.order('updateDate', { descending: false });
+  query.limit(100);
+
+  const [entities] = await datastore.runQuery(query);
+
+  const preds = [];
+  if (Array.isArray(entities)) {
+    for (const entity of entities) {
+      if (!isObject(entity)) continue;
+
+      const pred = entityToPred(entity);
+      preds.push(pred);
+    }
+  }
+
+  return { preds };
+};
+
 const queryPreds = async (stxAddr, game) => {
   const fltrs = [];
   if (isString(stxAddr)) fltrs.push(new PropertyFilter('stxAddr', '=', stxAddr));
@@ -265,7 +289,7 @@ const entityToPred = (entity) => {
 
 const data = {
   fetchBurnHeight, fetchHeight, fetchTxInfo, getUnconfirmedPreds, getVerifiablePreds,
-  getVerifyingPreds, queryPreds, updatePred,
+  getVerifyingPreds, getVerifiedPreds, queryPreds, updatePred,
 };
 
 export default data;

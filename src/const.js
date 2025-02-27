@@ -1,6 +1,8 @@
 export const USER = 'User';
 export const PRED = 'Pred';
 export const TOTAL = 'Total';
+export const LDB_LOG = 'LdbLog';
+export const PLYR_LOG = 'PlyrLog';
 
 export const CONTRACT_ADDR = 'SPGW94RBCYZNTV42XX57YZSHWZNKY9HYZJNYV8NR';
 

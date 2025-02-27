@@ -21,6 +21,10 @@ export const isNumber = (val) => {
   return typeof val === 'number' && isFinite(val);
 };
 
+export const isFldStr = (val) => {
+  return isString(val) && val.length > 0;
+};
+
 export const sample = (arr) => {
   return arr[Math.floor(Math.random() * arr.length)];
 };
