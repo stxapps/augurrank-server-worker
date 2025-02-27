@@ -23,13 +23,25 @@ storage-server-url/player/<ts>.json
   prevFName: null | '<ts>.json',
 }
 */
-const newContent = (isPrivate = false) => {
+const newContent = (noPlyrPg = false) => {
   return {
     data: {
-      username: null, avatar: null, bio: null, stats: {}, preds: [], isPrivate,
+      username: null, avatar: null, bio: null, noPlyrPg, stats: {}, preds: [],
     },
     prevFName: null,
   };
+};
+
+const joinPreds = (preds, newPreds) => {
+  const res = [], ids = [];
+  for (const pred of [...newPreds, ...preds]) {
+    if (ids.includes(pred.id)) continue;
+    res.push(pred);
+    ids.push(pred.id);
+  }
+
+  res.sort((a, b) => b.updateDate - a.updateDate);
+  return res;
 };
 
 export const toPlyr = async () => {
@@ -46,7 +58,7 @@ export const toPlyr = async () => {
 
   const stxAddrs = {};
   const nwLg = {
-    uUdtDt: 0, uKeys: [], pUdtDt: 0, pKeys: [],
+    uUdtDt, uKeys: [...uKeys], pUdtDt, pKeys: [...pKeys],
     createDate: startDate.getTime(), updateDate: startDate.getTime(),
   };
 
@@ -83,7 +95,13 @@ export const toPlyr = async () => {
       nwLg.pKeys.push(pred.id);
     }
   }
-  console.log(`(${logKey}) Got ${Object.keys(stxAddrs).length} stale stx addresses`);
+
+  const lnt = Object.keys(stxAddrs).length;
+  console.log(`(${logKey}) Got ${lnt} stale stx addresses`);
+  if (lnt === 0) {
+    console.log(`(${logKey}) Worker finishes on ${(new Date()).toISOString()}.`);
+    return;
+  }
 
   for (const [stxAddr, { user, preds }] of Object.entries(stxAddrs)) {
     const dir = `player/${stxAddr}`, path = `${dir}/index.json`;
@@ -102,21 +120,22 @@ export const toPlyr = async () => {
     }
     if (isObject(nwUsr)) {
       if (nwUsr.noPlyrPg === true) {
+        await dlbApi.deleteStorage(dir);
+
         nwCnt = newContent(true);
         await dlbApi.updateStorage(path, nwCnt, 'no-cache');
-        // delete other files
         continue;
       }
 
-      if (isFldStr(nwUsr.username)) nwCnt.data.username = nwUsr.username;
-      if (isFldStr(nwUsr.avatar)) nwCnt.data.avatar = nwUsr.avatar;
-      if (isFldStr(nwUsr.bio)) nwCnt.data.bio = nwUsr.bio;
+      nwCnt.data.username = isFldStr(nwUsr.username) ? nwUsr.username : null;
+      nwCnt.data.avatar = isFldStr(nwUsr.avatar) ? nwUsr.avatar : null;
+      nwCnt.data.bio = isFldStr(nwUsr.bio) ? nwUsr.bio : null;
     }
     if (preds.length > 0) {
       const stats = await dtsApi.getStats(stxAddr);
       nwCnt.data.stats = stats;
 
-      nwCnt.data.preds = [...preds.toReversed(), ...nwCnt.data.preds];
+      nwCnt.data.preds = joinPreds(nwCnt.data.preds, preds);
     }
 
     if (nwCnt.data.preds.length > 60) {

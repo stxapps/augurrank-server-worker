@@ -64,6 +64,17 @@ const updateStorage = async (path, content, cacheControl) => {
   await file.save(JSON.stringify(content), opts);
 };
 
+const deleteStorage = async (dir) => {
+  const query = { prefix: dir };
+  const [files] = await storage.bucket('augurrank-001.appspot.com').getFiles(query);
+
+  const nFiles = 64;
+  for (let i = 0; i < files.length; i += nFiles) {
+    const sltdFiles = files.slice(i, i + nFiles);
+    await Promise.all(sltdFiles.map(file => file.delete()));
+  }
+};
+
 const entityToUser = (entity) => {
   const user = {
     stxAddr: entity[datastore.KEY].name,
@@ -83,10 +94,11 @@ const entityToUser = (entity) => {
   if (isNotNullIn(entity, 'bio')) user.bio = entity.bio;
   if (isNotNullIn(entity, 'didAgreeTerms')) user.didAgreeTerms = entity.didAgreeTerms;
   if (isNotNullIn(entity, 'noInLdb')) user.noInLdb = entity.noInLdb;
+  if (isNotNullIn(entity, 'noPlyrPg')) user.noPlyrPg = entity.noPlyrPg;
 
   return user;
 };
 
-const data = { getUsers, getUpdatedUsers, fetchStorage, updateStorage };
+const data = { getUsers, getUpdatedUsers, fetchStorage, updateStorage, deleteStorage };
 
 export default data;
